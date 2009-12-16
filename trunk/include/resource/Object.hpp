@@ -18,9 +18,7 @@ namespace resource {
 				Animations,
 				Arts,
 				Gumps,
-				Textures,
-				Maps,
-				Statics
+				Textures
 			};
 			Object( Type _type, QByteArray _key );
 			virtual ~Object();

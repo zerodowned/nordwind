@@ -4,7 +4,7 @@
 #include <qobject.h>
 #include <qvector.h>
 #include <qdatastream.h>
-#include "../../util/Utilities.hpp"
+#include "../util/Utilities.hpp"
 
 namespace resource {
 	class Hues : public QObject {
@@ -30,14 +30,14 @@ namespace resource {
 				protected:
 					QSharedPointer<RawHue> mRawHue;
 			};
-			class PartialHue: protected Entry {
+			class PartialHue: public Entry {
 				public:
 					PartialHue(QSharedPointer<RawHue> _data);
 					virtual Colour mapToHue(Colour16 _colour16) const;
 			};
-			class DefaultHue: protected Entry {
+			class DefaultHue: public Entry {
 				public:
-					DefaultHue(QSharedPointer<RawHue> _data);
+					DefaultHue();
 					virtual Colour mapToHue(Colour16 _colour16) const;
 			};
 			Hues(QString _dataFile, QObject* _parent);
@@ -52,6 +52,8 @@ namespace resource {
 			QVector< QSharedPointer<RawHue> > mHues;
 			QDataStream mDataStream;
 	};
+
+	typedef QSharedPointer<Hues::Entry> Hue;
 
 	inline Hues::Entry::Entry(QSharedPointer<Hues::RawHue> _data )
 	: mRawHue(_data) {
@@ -81,7 +83,7 @@ namespace resource {
 	}
 
 	inline bool Hues::Entry::isPartialHue() const {
-		return (dynamic_cast<Hues::PartialHue*>(this)!=NULL) ? true : false;
+		return (dynamic_cast<const Hues::PartialHue*>(this)!=NULL) ? true : false;
 	}
 
 	inline Colour Hues::Entry::mapToHue( Colour16 _colour ) const {
@@ -102,23 +104,26 @@ namespace resource {
 		}
 	}
 
-	inline Hues::DefaultHue::DefaultHue( QSharedPointer<Hues::RawHue> _data )
-	: Hues::Entry(_data) {
+	inline Hues::DefaultHue::DefaultHue()
+	: Hues::Entry( QSharedPointer<Hues::RawHue>( new Hues::RawHue ) ) {
 	}
 
 	inline Colour Hues::DefaultHue::mapToHue( Colour16 _colour ) const {
 		return qRgb(_colour);
 	}
 
-	inline QVector<QSharedPointer<RawHue> > Hues::getHues() const {
+	inline QVector<QSharedPointer<Hues::RawHue> > Hues::getHues() const {
 		return mHues;
 	}
 
 	inline QSharedPointer<Hues::Entry> Hues::getHue(ID _id, bool _partialHue) const {
-		if (_id > mHues.size())
+		if ((int)(_id) > mHues.size())
 			return mDefaultHue;
-		return QSharedPointer<Entry>( (_partialHue) ? new Hues::PartialHue(mHues[_id])
-												  : new Hues::Entry(mHues[_id]) );
+		if(_partialHue) {
+			return QSharedPointer<Hues::PartialHue>( new Hues::PartialHue(mHues[_id]) );
+		} else {
+			return QSharedPointer<Entry>( new Hues::Entry(mHues[_id]) );
+		}
 	}
 
 	inline QSharedPointer<Hues::Entry> Hues::getDefaultHue() const {

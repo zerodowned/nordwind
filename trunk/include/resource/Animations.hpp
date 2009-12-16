@@ -10,8 +10,14 @@
 
 #include "IndexFile.hpp"
 #include "Object.hpp"
+#include "Hues.hpp"
+#include <qpair.h>
+#include <qmap.h>
 
 namespace resource {
+
+	class Animations; //forward declaration
+
 	class Animations: public IndexFile {
 	public:
 		typedef QPoint Center;
@@ -19,6 +25,7 @@ namespace resource {
 		class Sequence {
 			public:
 				Sequence(Action _action, Direction _direction, QVector<Frame> _frames);
+				Sequence();
 				Sequence(const Sequence& o);
 				~Sequence();
 				bool isValid() const;
@@ -34,18 +41,17 @@ namespace resource {
 		typedef QHash<Action, Directions> Actions;
 		class Entry: public Object {
 			public:
-				Entry(QWeakPointer<Animations> _loader, Body _body, QSharedPointer<
-						Hues::Entry> _hue);
+				Entry( QWeakPointer<resource::Animations> _loader, Body _body, Hue _hue);
 				virtual ~Entry();
 				Entry& addSequence(const Sequence& _sequence);
 				Sequence getSequence(Action _action, Direction _direction);
 				Actions getActions() const;
 				Body getBody() const;
-				QSharedPointer<Hues::Entry> getHue() const;
+				Hue getHue() const;
 			private:
 				Body mBody;
-				QSharedPointer<Entry> mHue;
-				QWeakPointer<Animations> mLoader;
+				Hue mHue;
+				QWeakPointer<resource::Animations> mLoader;
 				Actions mActions;
 		};
 		enum Type {
@@ -56,17 +62,16 @@ namespace resource {
 		virtual ~Animations();
 		Animations& loadBodyDef(QString _fileName);
 		QSharedPointer<Entry> getAnimation(Body _body, Action _action,
-				Direction _direction, QSharedPointer<Hues::Entry> _hue);
+				Direction _direction, Hue _hue);
 		Animations& loadSequence(Entry* _animation, Action _action, Direction _direction);
 		private:
 			//Animations& loadBodyConvDev(QString _fileName);
 			//Animations& loadMobTypesTxt(QString _fileName);
 			Animations& getFallback(Body& _body, Action& _action, Direction& _direction,
-					QSharedPointer<Hues::Entry>& _hue);
+					Hue& _hue);
 			ID calculateID(Body _body, Action _action, Direction _direction );
 			//IndexFile& getAnimFile(Body& _id);
-			Sequence decode(QByteArray _data, Action _action, Direction _direction, QSharedPointer<
-					Hues::Entry> _hue);
+			Sequence decode(QByteArray _data, Action _action, Direction _direction, Hue _hue);
 			Frame decodeFrame( QDataStream& _stream, Direction _direction, QVector<Colour> _hueTable );
 			// QPair<Body, ID> - quint32 body, quint32 hue
 			QMap<Body, QPair<Body, ID> > mFallback;
@@ -75,11 +80,17 @@ namespace resource {
 			// QPair<quint32, quint32> - eAnimationType type, quint32 flags
 			//QMap<quint32, QPair<Type, quint16> > mMobTypes;
 			static const quint8 mDirectionMap[8];
+			static const bool mDirectionFlip[8];
 			// describes amount of bodies and actions per section
 			typedef QPair<Body,Action> SectionStructure;
 			typedef QPair<Type, SectionStructure> Section;
 			QVector<Section> mStructure;
 	};
+
+	typedef Animations::Entry Animation;
+
+	inline Animations::Sequence::Sequence() {
+	}
 
 	inline bool Animations::Sequence::isValid() const {
 		return (mFrames.size() > 0) ? true : false;
@@ -95,6 +106,7 @@ namespace resource {
 
 	inline Animations::Entry & Animations::Entry::addSequence(const Animations::Sequence & _sequence) {
 		mActions[_sequence.getAction()][_sequence.getDirection()] = _sequence;
+		return *this;
 	}
 
 	inline QVector<Animations::Frame> Animations::Sequence::getFrames() const {
@@ -102,14 +114,14 @@ namespace resource {
 	}
 
 	inline Animations::Actions Animations::Entry::getActions() const {
-		return Actions;
+		return mActions;
 	}
 
 	inline Body Animations::Entry::getBody() const {
 		return mBody;
 	}
 
-	inline QSharedPointer<Hues::Entry> Animations::Entry::getHue() const {
+	inline Hue Animations::Entry::getHue() const {
 		return mHue;
 	}
 }

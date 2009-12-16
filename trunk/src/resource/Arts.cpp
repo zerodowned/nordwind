@@ -1,4 +1,6 @@
-#include "Arts.hpp"
+#include "resource/Arts.hpp"
+#include "resource/Cache.hpp"
+#include <qfile.h>
 
 using namespace resource;
 
@@ -29,8 +31,8 @@ Arts::Arts( QString _animFile, QString _indexFile, QString _dataFile, QObject* _
 Arts::~Arts() {
 }
 
-QSharedPointer<Animation> Arts::getAnimData( ID _id ) {
-	QSharedPointer<Animation> result = new Animation;
+QSharedPointer<Arts::Animation> Arts::getAnimData( ID _id ) {
+	QSharedPointer<Animation> result( new Animation );
 	mAnimStream.device()->seek( mAnimDataOffsets[_id] );
 	result->mIDs.resize(64);
 	for( quint8 i = 0; i < 64; i ++ ) {
@@ -46,9 +48,9 @@ QSharedPointer<Animation> Arts::getAnimData( ID _id ) {
 	return result;
 }
 
-QSharedPointer<Arts::Entry> Arts::getArtStatic( ID _id, QSharedPointer<Hues::Entry> _hue ) {
+QSharedPointer<Arts::Entry> Arts::getArtStatic( ID _id, Hue _hue ) {
 	QByteArray key = QByteArray::number(Object::Arts) + QByteArray::number(_id) + QByteArray::number(_hue->getID());
-	QSharedPointer<Arts::Entry> result = Cache::instance().lookup(key);
+	QSharedPointer<Arts::Entry> result = Cache::instance().lookup<Arts::Entry>(key);
 	if(result.isNull()) {
 		QByteArray data = getData(_id);
 		if(!data.isEmpty()) {
@@ -62,22 +64,22 @@ QSharedPointer<Arts::Entry> Arts::getArtStatic( ID _id, QSharedPointer<Hues::Ent
 						frames.push_back( QSharedPointer<Entry>() );
 					}
 				}
-				result = Cache::instance().manage( new AnimationEntry(_id,decodeStatic(data, _hue),_hue, frames, _animData));
+				result = Cache::instance().manage<Arts::AnimationEntry>( new Arts::AnimationEntry(_id,decodeStatic(data, _hue),_hue, frames, animData));
 			} else {
-				result = Cache::instance().manage( new Entry( _id, decodeStatic( data, _hue ), _hue ) );
+				result = Cache::instance().manage<Arts::Entry>( new Arts::Entry( _id, decodeStatic( data, _hue ), _hue ) );
 			}
 		}
 	}
 	return result;
 }
 
-QSharedPointer<Arts::Entry> Arts::getArtLand( ID _id, QSharedPointer<Hues::Entry> _hue ) {
+QSharedPointer<Arts::Entry> Arts::getArtLand( ID _id, Hue _hue ) {
 	QByteArray key = QByteArray::number(Object::Arts) + QByteArray::number(_id) + QByteArray::number(_hue->getID());
-	QSharedPointer<Arts::Entry> result = Cache::instance().lookup(key);
+	QSharedPointer<Arts::Entry> result = Cache::instance().lookup<Arts::Entry>(key);
 	if(result.isNull()) {
 		QByteArray data = getData(_id);
 		if(!data.isEmpty()) {
-			result = Cache::instance().manage( new Entry( _id, decodeLand( data, _hue ), _hue ) );
+			result = Cache::instance().manage<Arts::Entry>( new Arts::Entry( _id, decodeLand( data, _hue ), _hue ) );
 		}
 	}
 	return result;
@@ -101,20 +103,19 @@ Image Arts::decodeStatic( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 
 	quint16 width, height;
 	stream >> width >> height;
-	Image image = new QImage( width, height, QImage::Format_ARGB32 );
+	Image image( new QImage( width, height, QImage::Format_ARGB32 ) );
 	Q_ASSERT(!image.isNull());
 	image->fill( 0x00000000 );
 
 	QVector<quint16> lookupTable( height, 0x0000 );
-	stream.readRawData( static_cast<char*>(lookupTable), sizeof(quint16)*height); // Read in the offset table for every row
+	stream.readRawData( (char*)lookupTable.data(), sizeof(quint16)*height); // Read in the offset table for every row
 
 	quint16 y = 0;
 	foreach( quint16 offset, lookupTable ) {
 		quint16 x = 0;
 		stream.device()->seek(offset<<1);
+		quint16 xoffset, rlength;
 		do {
-			quint16 xoffset = 0;
-			quint16 rlength = 0;
 			stream >> xoffset >> rlength;
 			x += xoffset;
 			for( quint16 dx = 0; dx < rlength; dx++,x++ ) {
@@ -140,12 +141,12 @@ Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 	if(flag<0xFFFF && flag > 0)
 		return decodeStatic(_data,_hue);
 
-	Image image = new QImage( 44, 44, QImage::Format_ARGB32 );
+	Image image( new QImage( 44, 44, QImage::Format_ARGB32 ) );
 	Q_ASSERT(!image.isNull());
 	image->fill( 0x00000000 );
 
 	QVector<Colour16> imgData( 1024 );
-	stream.readRawData( static_cast<char*>(imgData.data()), sizeof(Colour16)<<10 );
+	stream.readRawData( (char*)imgData.data(), sizeof(Colour16)<<10 );
 
 	quint16 coffset = 0;
 	quint8 span = 2;

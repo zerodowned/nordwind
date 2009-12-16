@@ -1,14 +1,14 @@
-#include "Hues.hpp"
+#include "resource/Hues.hpp"
+#include <qfile.h>
 #include <qdebug.h>
 
 using namespace resource;
 
 Hues::Hues( QString _dataFile, QObject* _parent )
-: QObject(_parent),
-  mDefaultHue(new RawHue) {
-	Q_ASSERT_X(QFile::exists(_dataFile),__PRETTY_FUNCTION__, _dataFile);
+: QObject(_parent) {
+	Q_ASSERT_X(QFile::exists(_dataFile),__PRETTY_FUNCTION__, _dataFile.toAscii().constData());
 	mDataStream.setDevice( new QFile(_dataFile,this) );
-	Q_ASSERT_X(mDataStream.device()->open(QIODevice::ReadOnly),__PRETTY_FUNCTION__, _dataFile);
+	Q_ASSERT_X(mDataStream.device()->open(QIODevice::ReadOnly),__PRETTY_FUNCTION__, _dataFile.toAscii().constData());
 	mDataStream.setByteOrder(QDataStream::LittleEndian);
 	load();
 };
@@ -26,10 +26,10 @@ Hues& Hues::load() {
 
 		// Read 8 hues
 		for (unsigned int j = 0; j < 8; ++j) {
-			Hues::RawHue* rawHue = new RawHue;
+			QSharedPointer<Hues::RawHue> rawHue( new RawHue );
 			rawHue->mID = i;
 			Colour16 color; // Temporary variable for 16-bit color values
-			rawHue->mColourTable( 33, qRgba( 0x00, 0x00, 0x00, 0x00 ) );
+			rawHue->mColourTable.resize( 32 );
 			// Read 32 colors
 			for (quint8 k = 0; k < 32; ++k) {
 				mDataStream >> color;

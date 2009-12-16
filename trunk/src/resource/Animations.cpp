@@ -4,33 +4,38 @@
  *  Created on: 13.12.2009
  *      Author: idstein
  */
-#include "Animations.hpp"
+#include "resource/Animations.hpp"
+#include "resource/Cache.hpp"
+#include <qfile.h>
+#include <qregexp.h>
+#include <qstringlist.h>
+#include <qtextstream.h>
+#include <qdebug.h>
 
 using namespace resource;
 
-Animations::Sequence::Sequence( quint8 _action, quint8 _direction, QVector<Frame> _frames )
+Animations::Sequence::Sequence( Action _action, Direction _direction, QVector<Frame> _frames )
 : mAction(_action),
   mDirection(_direction),
   mFrames(_frames) {
 }
 
-Animations::Sequence::Sequence( const Sequence& _other )
+Animations::Sequence::Sequence( const Animations::Sequence& _other )
 : mAction(_other.mAction),
   mDirection(_other.mDirection),
   mFrames(_other.mFrames) {
-}
-
-Animations::Sequence::Sequence() {
 }
 
 Animations::Sequence::~Sequence() {
 }
 
 Animations::Sequence Animations::Entry::getSequence(Action _action, Direction _direction) {
-	mLoader->loadSequence(this, _action, _direction);
+	if(!mActions.contains(_action)&&!mActions[_action].contains(_direction))
+		mLoader.data()->loadSequence(this, _action, _direction);
+	return mActions[_action][_direction];
 }
 
-Animations::Entry::Entry( QWeakPointer<Animations> _loader, Body _body, QSharedPointer<Hues::Entry> _hue)
+Animations::Entry::Entry( QWeakPointer<resource::Animations> _loader, Body _body, Hue _hue)
 : Object( Object::Animations, QByteArray::number(_body) + QByteArray::number(_hue->getID())),
   mBody(_body),
   mHue(_hue),
@@ -50,7 +55,9 @@ Animations::Entry::~Entry() {
 //	return file;
 //}
 
-static const quint8 Animations::mDirectionMap[8] = {3, 2, 1, 0, 1, 2, 3, 4};
+// West = 0, Right = 1, East = 2, Down = 3, South = 4, Left = 5, North = 6, Up = 7
+const quint8 Animations::mDirectionMap[8] = {3, 2, 1, 0, 1, 2, 3, 4};
+const bool Animations::mDirectionFlip[8] = {true, true, true, false, false, false, false, false};
 
 Animations::Animations(QString _indexFile, QString _dataFile, QObject* _parent )
 : IndexFile(_indexFile,_dataFile,_parent) {
@@ -72,6 +79,9 @@ Animations::Animations(QString _indexFile, QString _dataFile, QObject* _parent )
 //		x equipement ``a 175 actions
 }
 
+Animations::~Animations() {
+}
+
 Animations& Animations::loadBodyDef( QString _fileName ) {
 	// Format is:
 	// oldbody {newbody, newbody, newbody} newhue
@@ -80,7 +90,7 @@ Animations& Animations::loadBodyDef( QString _fileName ) {
 
 	QFile file(_fileName);
 	QTextStream stream(&file);
-	Q_ASSERT_X(stream.device()->open(QIODevice::ReadOnly), __PRETTY_FUNCTION__, _fileName);
+	Q_ASSERT_X(stream.device()->open(QIODevice::ReadOnly), __PRETTY_FUNCTION__, _fileName.toAscii().constData());
 	bool ok = false;
 	quint32 iLine = 0;
 	while (!stream.atEnd()) {
@@ -203,12 +213,12 @@ Animations& Animations::loadBodyDef( QString _fileName ) {
 //}
 
 
-QSharedPointer<Animations::Entry> Animations::getAnimation(Body _body, Action _action, Direction _direction, QSharedPointer<Hues::Entry> _hue) {
+QSharedPointer<Animations::Entry> Animations::getAnimation(Body _body, Action _action, Direction _direction, Hue _hue) {
 	getFallback(_body,_action,_direction,_hue);
-	QByteArray key = QByteArray::number(Object::Animation) + QByteArray::number(_body) + QByteArray(_hue->getID());
-	QSharedPointer<Animations::Entry> result = Cache::instance().lookup( key );
+	QByteArray key = QByteArray::number(Object::Animations) + QByteArray::number(_body) + QByteArray::number(_hue->getID());
+	QSharedPointer<Animations::Entry> result = Cache::instance().lookup<Animations::Entry>( key );
 	if(result.isNull()) {
-		result = Cache::instance().manage( new Animations::Entry( QSharedPointer<Animations>(this), _body, _hue ) );
+		result = Cache::instance().manage<Animations::Entry>( new Animations::Entry( QSharedPointer<Animations>(this), _body, _hue ) );
 	}
 	result->getSequence(_action,_direction);
 	return result;
@@ -222,7 +232,7 @@ Animations& Animations::loadSequence( Animations::Entry* _animation, Action _act
 	return *this;
 }
 
-Animations& Animations::getFallback( Body& _body, Action& _action, Direction& _direction, QSharedPointer<Hues::Entry>& _hue ) {
+Animations& Animations::getFallback( Body& _body, Action& _action, Direction& _direction, Hue&_hue ) {
 	if(mFallback.contains(_body)) {
 		// _hue = mFallback[_body].second TODO load Hue here! Need singleton for Resource->hues
 		_body = mFallback[_body].first;
@@ -250,7 +260,7 @@ Animations::Sequence Animations::decode( QByteArray _data, Action _action, Direc
 	stream.setByteOrder(QDataStream::LittleEndian);
 
 	QVector<Colour16> col16Table( 0xFF );
-	stream.readRawData( static_cast<char*>(col6Table.data()), sizeof(Colour16)<<8 );
+	stream.readRawData( (char*)col16Table.data(), sizeof(Colour16)<<8 );
 	QVector<Colour> hueTable;
 	foreach( Colour16 col16, col16Table ) {
 		hueTable.push_back( _hue->mapToHue(col16) );
@@ -259,7 +269,7 @@ Animations::Sequence Animations::decode( QByteArray _data, Action _action, Direc
 	quint32 frameCount = 0;
 	stream >> frameCount;
 	QVector<quint32> offsetTable( frameCount );
-	stream.readRawData( static_cast<char*>(offsetTable.data()), sizeof(quint32)*frameCount );
+	stream.readRawData( (char*)offsetTable.data(), sizeof(quint32)*frameCount );
 
 	QVector<Frame> frames;
 	foreach(quint32 offset, offsetTable) {
@@ -269,14 +279,14 @@ Animations::Sequence Animations::decode( QByteArray _data, Action _action, Direc
 	return Sequence( _action, _direction, frames );
 }
 
-Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVector<Colour> _hueTable ) {
+Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVector<Colour> _hueTable ) {
 	qint16 centerX, centerY;
 	_stream >> centerX >> centerY;
 	Center center( centerX, centerY );
 
 	quint16 width, height;
 	_stream >> width >> height;
-	Image image = new QImage( width, height, QImage::Format_ARGB32 );
+	Image image( new QImage( width, height, QImage::Format_ARGB32 ) );
 	Q_ASSERT(!image.isNull());
 	image->fill(0x00000000);
 
@@ -284,7 +294,7 @@ Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVect
 		// Start reading the frame runs
 		do {
 			quint32 header = 0x7FFF7FFF;
-			input >> header; // Read the frame header
+			_stream >> header; // Read the frame header
 
 			// This is the end marker
 			if (header == 0x7FFF7FFF) {
@@ -307,13 +317,13 @@ Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVect
 
 			qint32 y = centerY + yoffset + height;
 			qint32 x = centerX + xoffset;
-			if(flip) {
+			if(mDirectionFlip[_direction]) {
 				x = width - x;
 			};
 			for (quint16 i = 0; i < length; i++, x++) {
 				quint8 pixel;
-				input >> pixel;
-				img->setPixel( x, y, _hueTable[pixel] );
+				_stream >> pixel;
+				image->setPixel( x, y, _hueTable[pixel] );
 			}
 		} while (true);
 	}

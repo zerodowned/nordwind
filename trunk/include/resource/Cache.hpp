@@ -20,56 +20,39 @@ namespace resource {
 		friend class Singleton<Cache>;
 		public:
 			template<typename T>
-			QSharedPointer<T> lookup( QByteArray _key );
-			template<typename T, typename KEY>
-			QSharedPointer<T> lookup( KEY _key );
+			QSharedPointer<T> lookup( const QByteArray& _key );
 			template<typename T>
-			QSharedPointer<T> manage( T* object );
+			QSharedPointer<T> manage( Object* object );
 			void moveToCache( QByteArray _key, Object* _object );
 		protected:
-			QSharedPointer<Object> getPointer( QByteArray _key );
+			QSharedPointer<Object> getPointer( const QByteArray& _key );
 		private:
 			QHash< QByteArray, QWeakPointer<Object> > mObjects;
 			QCache< QByteArray, Object > mCache;
 	};
 
-	QSharedPointer<Object> Cache::getPointer( QByteArray _key ) {
-		QSharedPointer<Object> result;
-		if(mObjects.contains(_key)) {
-			result = QSharedPointer<Object>(mObjects[_key],&Object::cache);
-		} else {
-			if(mCache.contains(_key)) {
-				result = QSharedPointer<Object>(mCache.take(_key),&Object::cache);
-				mObjects[_key] = result.toWeakRef();
-			}
-		}
-		return result;
+	template <typename T>
+	inline QSharedPointer<T> Cache::lookup( const QByteArray& _key ) {
+		return getPointer(_key).dynamicCast<T>();
 	}
+
+//	template <typename T, typename KEY>
+//	inline QSharedPointer<T> Cache::lookup( KEY _key ) {
+//		QByteArray key(QByteArray::fromRawData(static_cast<const char*>(&_key),sizeof(KEY)));
+//		return lookup(key);
+//	}
 
 	template <typename T>
-	inline QSharedPointer<T> Cache::lookup( QByteArray _key ) {
-		return getPointer(_key).dynamicCast();
-	}
-
-	template <typename T, typename KEY>
-	inline QSharedPointer<T> Cache::lookup( KEY _key ) {
-		QByteArray key(QByteArray::fromRawData(static_cast<const char*>(&_key),sizeof(KEY)));
-		return lookup(key);
-	}
-
-	template <typename T>
-	inline QSharedPointer<T> Cache::manage( T* _object ) {
-		QSharedPointer<T> result = _object;
+	inline QSharedPointer<T> Cache::manage( Object* _object ) {
 		// check if T is derivative of Object
-		QSharedPointer<Object> tmp = result.dynamicCast();
-		if(!tmp.isNull()) {
-			mObjects[_object->key()] = tmp.toWeakRef();
-			result = QSharedPointer<T>( _object, &T::cache);
+		QSharedPointer<Object> result( _object, &Object::cache );
+		if(!result.isNull()) {
+			mObjects[result->getKey()] = result.toWeakRef();
 		}
-		return result;
+		return result.staticCast<T>();
 	}
 
-	inline void Cache::moveToCache( QByteArray _key, Cache::Object* _object ) {
+	inline void Cache::moveToCache( QByteArray _key, Object* _object ) {
 		mObjects.remove(_key);
 		mCache.insert(_key, _object);
 	}
