@@ -12,6 +12,8 @@
 
 namespace resource {
 
+	class TileData; //forward
+
 	class TileData : public QObject {
 	public:
 		enum Flag {
@@ -51,6 +53,7 @@ namespace resource {
 		};
 		Q_DECLARE_FLAGS(Flags, Flag);
 		class Entry {
+			friend class TileData;
 			public:
 				QString getName() const;
 				Flags getFlags() const;
@@ -60,6 +63,7 @@ namespace resource {
 				QString mName;
 		};
 		class LandInfo: public Entry {
+			friend class TileData;
 			public:
 				quint16 getTextureID() const;
 				bool isTile() const;
@@ -67,6 +71,7 @@ namespace resource {
 				quint16 mTextureID;
 		};
 		class TileInfo: public Entry {
+			friend class TileData;
 			public:
 				quint8 getHeight() const;
 				quint8 getHue() const;

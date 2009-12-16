@@ -1,6 +1,7 @@
 INPUT(
 ./build\main.o
 ./build\Client.o
+./build\TileData.o
 ./build\Cache.o
 ./build\Textures.o
 ./build\Resources.o

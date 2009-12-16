@@ -14,7 +14,7 @@ UI_DIR = ./build
 INCLUDEPATH += include/
 SOURCES += src/main.cpp \
     src/Client.cpp \
-#    src/resource/TileData.cpp \
+    src/resource/TileData.cpp \
 	src/resource/Cache.cpp \
     src/resource/Textures.cpp \
     src/resource/Resources.cpp \
@@ -26,7 +26,7 @@ SOURCES += src/main.cpp \
     src/resource/Arts.cpp \
     src/resource/Animations.cpp
 HEADERS += include/Client.hpp \
-#    include/resource/TileData.hpp \
+    include/resource/TileData.hpp \
     include/resource/Textures.hpp \
     include/resource/Texture.hpp \
     include/resource/Resources.hpp \

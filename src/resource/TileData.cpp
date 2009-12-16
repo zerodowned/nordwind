@@ -35,7 +35,7 @@ TileData::TileData(QString _fileName, QObject* _parent)
 	while( !stream.atEnd() ) {
 		if( i%32 == 0 )
 			stream.skipRawData(4); // skip 4 byte header;
-		QSharedPointer<TileData::TileInfo> entry = new TileData::TileInfo;
+		QSharedPointer<TileData::TileInfo> entry( new TileData::TileInfo );
 		int flags;
 		stream >> flags
 			   >> entry->mWeight
@@ -49,10 +49,13 @@ TileData::TileData(QString _fileName, QObject* _parent)
 			   >> entry->mStackOffset
 			   >> entry->mUnknown3
 			   >> entry->mHeight;
-		entry->mFlags = flags;
+		entry->mFlags = TileData::Flags( flags );
 		char tmp[20];
 		stream.readRawData( tmp, 20 );
 		entry->mName = tmp;
 		mEntries.insert( i, entry );
 	}
+}
+
+TileData::~TileData() {
 }
