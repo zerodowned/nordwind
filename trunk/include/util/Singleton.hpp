@@ -6,39 +6,40 @@ class Singleton {
 	private:
 		Singleton(const Singleton& _t) {
 		}
-		static T* m_instance;
+		static T* mInstance;
 	protected:
 		Singleton() {
+			mInstance = const_cast<T*>(static_cast<const T*>(this));
 		}
 		virtual ~Singleton() {
+			mInstance = 0;
 		}
 	public:
 		static T& getInstance(void) {
 			if (!isValid())
-				m_instance = new T();
-			return (*m_instance);
+				new T();
+			return (*mInstance);
 		}
 		static T& instance(void) {
 			if (!isValid())
-				m_instance = new T();
-			return (*m_instance);
+				new T();
+			return (*mInstance);
 		}
 		static T* getPointer(void) {
 			if (!isValid())
-				m_instance = new T();
-			return m_instance;
+				mInstance = new T();
+			return mInstance;
 		}
 		static bool isValid() {
-			return (!m_instance) ? false : true;
+			return (!mInstance) ? false : true;
 		}
 		static void destroyInstance(void) {
 			if (isValid()) {
-				delete m_instance;
-				m_instance = 0;
+				delete mInstance;
 			}
 		}
 };
-template <typename T> T* Singleton<T>::m_instance = 0;
+template <typename T> T* Singleton<T>::mInstance = 0;
 
 
 #endif

@@ -1,10 +1,14 @@
 INPUT(
+./build\MapEntity.o
+./build\Resources.o
+./build\UserInterface.o
+./build\Scene.o
+./build\View.o
 ./build\main.o
 ./build\Client.o
 ./build\TileData.o
 ./build\Cache.o
 ./build\Textures.o
-./build\Resources.o
 ./build\Object.o
 ./build\IndexFile.o
 ./build\Hues.o
@@ -12,5 +16,9 @@ INPUT(
 ./build\Facets.o
 ./build\Arts.o
 ./build\Animations.o
+./build\moc_Resources.o
+./build\moc_UserInterface.o
+./build\moc_View.o
+./build\moc_Scene.o
 ./build\moc_Client.o
 );

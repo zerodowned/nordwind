@@ -5,6 +5,7 @@
 #include "Object.hpp"
 #include <qcache.h>
 #include <qmap.h>
+#include <qpointer.h>
 
 namespace resource {
 
@@ -23,7 +24,17 @@ namespace resource {
 			};
 			typedef QVector<MapTile> MapTiles;
 			typedef QVector<StaticTile> StaticTiles;
-			typedef QPair<MapTiles,StaticTiles> Block;
+			class Entry;
+			class Block : public QPair<MapTiles,StaticTiles>, public Object {
+				public:
+					Block( QPointer<Entry> _facet, QPoint _offset, MapTiles _mapTiles, StaticTiles _staticTiles );
+					virtual ~Block();
+					QPoint getOffset() const;
+					QPointer<Entry> getFacet() const;
+				private:
+					QPointer<Entry> mFacet;
+					QPoint mOffset;
+			};
 			class Entry : public IndexFile {
 				public:
 					Entry( QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent);
@@ -32,15 +43,14 @@ namespace resource {
 					bool isSameBlock( const QPoint& _posA, const QPoint& _posB ) const;
 					QSize getDimension() const;
 					QString getName() const;
+					ID getBlockID( const QPoint& _pos ) const;
 				private:
 					QByteArray getMapData( ID _id );
 					MapTiles decodeMap( QByteArray _data );
 					StaticTiles decodeStatic( QByteArray _data );
-					ID getBlockID( const QPoint& _pos ) const;
 					QString mName;
 					QSize mDimension; // dimension counted in blocks!
 					QDataStream mMapStream;
-					QCache< ID, QSharedPointer<Block> > mBlockCache;
 			};
 			Facets( QObject* _parent );
 			virtual ~Facets();
@@ -51,6 +61,24 @@ namespace resource {
 	};
 
 	typedef QSharedPointer<Facets::Entry> Facet;
+
+	inline Facets::Block::Block( QPointer<Facets::Entry> _facet, QPoint _offset, MapTiles _mapTiles, StaticTiles _staticTiles )
+	: QPair<MapTiles,StaticTiles>(_mapTiles,_staticTiles),
+	  Object( Object::Facet, (_facet->getName().toAscii())+QByteArray::number(_facet->getBlockID(_offset)) ),
+	  mFacet(_facet),
+	  mOffset(_offset) {
+	}
+
+	inline Facets::Block::~Block() {
+	}
+
+	inline QPoint Facets::Block::getOffset() const {
+		return mOffset;
+	}
+
+	inline QPointer<Facets::Entry> Facets::Block::getFacet() const {
+		return mFacet;
+	}
 
 	inline bool Facets::Entry::isSameBlock( const QPoint& _posA, const QPoint& _posB ) const {
 		return (getBlockID(_posA)==getBlockID(_posB)) ? true : false;
@@ -70,6 +98,9 @@ namespace resource {
 
 	inline Facets::Facets( QObject* _parent )
 	: QObject(_parent) {
+	}
+
+	inline Facets::~Facets() {
 	}
 
 	inline Facets& Facets::addFacet( QString _name, QString _mapFile, QSize _dimension, QString _staticsIndex, QString _staticsData ) {

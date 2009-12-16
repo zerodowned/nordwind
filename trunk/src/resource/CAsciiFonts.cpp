@@ -89,7 +89,7 @@ void CAsciiEngine::reload() {
 	load();
 }
 
-QImage* CAsciiEngine::buildTextWrapped(quint8 font, const QString &text, quint16 maxWidth, quint32 hue, bool shaded, eTextAlign align, bool hueAll) {
+QPixmap* CAsciiEngine::buildTextWrapped(quint8 font, const QString &text, quint16 maxWidth, quint32 hue, bool shaded, eTextAlign align, bool hueAll) {
 	// Insert Newslines if the word would exceed the maxWidth boundary
 	if(font>=m_fonts.size())
 		return NULL;
@@ -130,7 +130,7 @@ QImage* CAsciiEngine::buildTextWrapped(quint8 font, const QString &text, quint16
 	return buildText(font, wrapped, hue, shaded, align, hueAll);
 }
 
-QImage *CAsciiEngine::buildText(quint8 font, const QString &text, quint32 hueid, bool shaded, eTextAlign align, bool hueAll) {
+QPixmap *CAsciiEngine::buildText(quint8 font, const QString &text, quint32 hueid, bool shaded, eTextAlign align, bool hueAll) {
 	if (font > m_fonts.size()) {
 		font = 3; // Default back to font 3 if the font is invalid
 	}
@@ -165,10 +165,10 @@ QImage *CAsciiEngine::buildText(quint8 font, const QString &text, quint32 hueid,
 	quint16 baseline = height; // Store the baseline
 	height = lineWidths.size() * height; // Increase the height of the text	
 
-	QImage *img = 0; // The resulting text line
+	QPixmap *img = 0; // The resulting text line
 
 	if (width > 0) {
-		img = new QImage(width, height, QImage::Format_ARGB32 );
+		img = new QPixmap(width, height, QPixmap::Format_ARGB32 );
 		img->fill(0); // Clear the background of the surface
 
 		// Start copying the characters over

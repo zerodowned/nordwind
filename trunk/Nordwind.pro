@@ -12,12 +12,16 @@ MOC_DIR = ./build
 OBJECTS_DIR = ./build
 UI_DIR = ./build
 INCLUDEPATH += include/
-SOURCES += src/main.cpp \
+SOURCES += src/game/MapEntity.cpp \
+    src/core/Resources.cpp \
+    src/core/UserInterface.cpp \
+    src/game/Scene.cpp \
+    src/game/View.cpp \
+    src/main.cpp \
     src/Client.cpp \
     src/resource/TileData.cpp \
-	src/resource/Cache.cpp \
+    src/resource/Cache.cpp \
     src/resource/Textures.cpp \
-    src/resource/Resources.cpp \
     src/resource/Object.cpp \
     src/resource/IndexFile.cpp \
     src/resource/Hues.cpp \
@@ -25,11 +29,16 @@ SOURCES += src/main.cpp \
     src/resource/Facets.cpp \
     src/resource/Arts.cpp \
     src/resource/Animations.cpp
-HEADERS += include/Client.hpp \
+HEADERS += include/game/MapEntity.hpp \
+    include/game/Entity.hpp \
+    include/core/Resources.hpp \
+    include/resource/GraphicsTexture.hpp \
+    include/core/UserInterface.hpp \
+    include/game/View.hpp \
+    include/game/Scene.hpp \
+    include/Client.hpp \
     include/resource/TileData.hpp \
     include/resource/Textures.hpp \
-    include/resource/Texture.hpp \
-    include/resource/Resources.hpp \
     include/resource/Object.hpp \
     include/resource/IndexFile.hpp \
     include/resource/Hues.hpp \
@@ -41,4 +50,4 @@ HEADERS += include/Client.hpp \
     include/util/Utilities.hpp \
     include/util/Typedefs.hpp \
     include/util/Singleton.hpp \
-    include/util/DebugInformation.hpp \
+    include/util/DebugInformation.hpp

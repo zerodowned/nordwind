@@ -11,14 +11,14 @@
 #include <qglobal.h>
 #include <qrgb.h>
 #include <qsharedpointer.h>
-#include <qimage.h>
+#include <qpixmap.h>
 
 	typedef quint32 ID;
 	typedef ID Body;
 	typedef qint8 Z;
 	typedef quint16 Colour16;
 	typedef QRgb Colour;
-	typedef QSharedPointer<QImage> Image;
+	typedef QSharedPointer<QPixmap> Image;
 	enum Direction {
 		West = 0,
 		Right = 1,

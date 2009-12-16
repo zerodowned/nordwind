@@ -103,9 +103,8 @@ Image Arts::decodeStatic( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 
 	quint16 width, height;
 	stream >> width >> height;
-	Image image( new QImage( width, height, QImage::Format_ARGB32 ) );
-	Q_ASSERT(!image.isNull());
-	image->fill( 0x00000000 );
+	QImage image(width,height,QImage::Format_ARGB32);
+	image.fill( 0x00000000 );
 
 	QVector<quint16> lookupTable( height, 0x0000 );
 	stream.readRawData( (char*)lookupTable.data(), sizeof(quint16)*height); // Read in the offset table for every row
@@ -123,12 +122,12 @@ Image Arts::decodeStatic( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 				stream >> colour16;
 				if( colour16 == 0)
 					continue;
-				image->setPixel( x, y, _hue->mapToHue(colour16) );
+				image.setPixel( x, y, _hue->mapToHue(colour16) );
 			}
 		} while((xoffset+rlength)!=0);
 		y++;
 	}
-	return image;
+	return Image(new QPixmap(QPixmap::fromImage(image)));
 }
 
 Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
@@ -141,9 +140,8 @@ Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 	if(flag<0xFFFF && flag > 0)
 		return decodeStatic(_data,_hue);
 
-	Image image( new QImage( 44, 44, QImage::Format_ARGB32 ) );
-	Q_ASSERT(!image.isNull());
-	image->fill( 0x00000000 );
+	QImage image(44,44,QImage::Format_ARGB32);
+	image.fill( 0x00000000 );
 
 	QVector<Colour16> imgData( 1024 );
 	stream.readRawData( (char*)imgData.data(), sizeof(Colour16)<<10 );
@@ -152,19 +150,19 @@ Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 	quint8 span = 2;
 	for( quint8 y = 0; y < 21; y++ ) {
 		for( quint8 x = 21 - y; x < span; x++ ) {
-			image->setPixel( x,y, _hue->mapToHue(imgData[coffset]));
+			image.setPixel( x,y, _hue->mapToHue(imgData[coffset]));
 			coffset++;
 		}
 		span+=2;
 	}
 	for( quint8 y = 22; y < 44; y++ ) {
 		for( quint8 x = 0 + y-22; x < span; x++ ) {
-			image->setPixel( x,y, _hue->mapToHue(imgData[coffset]));
+			image.setPixel( x,y, _hue->mapToHue(imgData[coffset]));
 			coffset++;
 		}
 		span-=2;
 	}
-	return image;
+	return Image(new QPixmap(QPixmap::fromImage(image)));
 }
 
 

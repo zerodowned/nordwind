@@ -7,7 +7,7 @@
 #include "../core/ISingleton.h"
 #include <Qt/QRgb.h>
 
-class QImage;
+class QPixmap;
 
 namespace resource {
 	enum eTextAlign {
@@ -48,8 +48,8 @@ namespace resource {
 			quint8 getFontHeight( quint8 _font );
 			quint16 getTextWidth( quint8 _font, const QString& _text, quint32 _start = 0, quint32 _end = 0xFFFFFFFF );
 			// Build a text string
-			QImage* buildText(quint8 font, const QString &text, quint32 hue = 0, bool shaded = false, eTextAlign align = eAlign_left, bool hueAll = false);
-			QImage* buildTextWrapped(quint8 font, const QString &text, quint16 maxWidth, quint32 hue = 0, bool shaded = false, eTextAlign align = eAlign_left, bool hueAll = false);
+			QPixmap* buildText(quint8 font, const QString &text, quint32 hue = 0, bool shaded = false, eTextAlign align = eAlign_left, bool hueAll = false);
+			QPixmap* buildTextWrapped(quint8 font, const QString &text, quint16 maxWidth, quint32 hue = 0, bool shaded = false, eTextAlign align = eAlign_left, bool hueAll = false);
 	};
 }
 

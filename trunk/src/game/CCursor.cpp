@@ -23,7 +23,7 @@ bool CCursor::load() {
 		m_cursorsWar.resize( CURSOR_COUNT );
 		for( quint8 i = 0; i < m_cursors.size(); i ++ ) {
 			qint32 hotX, hotY;
-			QImage* cur = core::Client::root->resource()->getCursor( hotX, hotY, normalCursorOffset + i );
+			QPixmap* cur = core::Client::root->resource()->getCursor( hotX, hotY, normalCursorOffset + i );
 			if(cur) {
 				QPixmap pix = QPixmap::fromImage( *cur );
 				pix.setMask( QBitmap::fromImage( cur->createAlphaMask() ) );

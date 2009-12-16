@@ -55,9 +55,12 @@ namespace resource {
 		class Entry {
 			friend class TileData;
 			public:
+				Entry();
+				virtual ~Entry();
 				QString getName() const;
 				Flags getFlags() const;
-				bool isTile() const;
+				virtual bool isTile() const;
+				virtual bool isValid() const;
 			private:
 				Flags mFlags;
 				QString mName;
@@ -66,7 +69,8 @@ namespace resource {
 			friend class TileData;
 			public:
 				quint16 getTextureID() const;
-				bool isTile() const;
+				virtual bool isTile() const;
+				virtual bool isValid() const;
 			private:
 				quint16 mTextureID;
 		};
@@ -84,7 +88,8 @@ namespace resource {
 				quint8 getStackOffset() const;
 				quint8 getUnknown3() const;
 				quint8 getWeight() const;
-				bool isTile() const;
+				virtual bool isTile() const;
+				virtual bool isValid() const;
 			private:
 				quint8 mWeight; // 255 if not moveable
 				quint8 mQuality; // See below
@@ -107,6 +112,15 @@ namespace resource {
 		Entries mEntries;
 	};
 
+	typedef QSharedPointer<TileData::LandInfo> LandInfo;
+	typedef QSharedPointer<TileData::TileInfo> TileInfo;
+
+	inline TileData::Entry::Entry() {
+	}
+
+	inline TileData::Entry::~Entry() {
+	}
+
 	inline QString TileData::Entry::getName() const {
 		return mName;
 	}
@@ -115,56 +129,76 @@ namespace resource {
 		return mFlags;
 	}
 
+	inline bool TileData::Entry::isTile() const {
+		return false;
+	}
+
+	inline bool TileData::Entry::isValid() const {
+		return false;
+	}
+
 	inline bool TileData::LandInfo::isTile() const {
 		return false;
+	}
+
+	inline bool TileData::LandInfo::isValid() const {
+		return true;
 	}
 
 	inline quint16 TileData::LandInfo::getTextureID() const {
 		return mTextureID;
 	}
 
-	quint16 TileData::TileInfo::getAnimation() const {
+	inline quint16 TileData::TileInfo::getAnimation() const {
 		return mAnimation;
 	}
 
-	quint8 TileData::TileInfo::getHeight() const {
+	inline quint8 TileData::TileInfo::getHeight() const {
 		return mHeight;
 	}
 
-	quint8 TileData::TileInfo::getHue() const {
+	inline quint8 TileData::TileInfo::getHue() const {
 		return mHue;
 	}
 
-	quint8 TileData::TileInfo::getQuality() const {
+	inline quint8 TileData::TileInfo::getQuality() const {
 		return mQuality;
 	}
 
-	quint8 TileData::TileInfo::getQuantity() const {
+	inline quint8 TileData::TileInfo::getQuantity() const {
 		return mQuantity;
 	}
 
-	quint16 TileData::TileInfo::getHitpoints() const {
+	inline quint16 TileData::TileInfo::getHitpoints() const {
 		return mHitpoints;
 	}
 
-	quint8 TileData::TileInfo::getUnknown1() const {
+	inline quint8 TileData::TileInfo::getUnknown1() const {
 		return mUnknown1;
 	}
 
-	quint8 TileData::TileInfo::getUnknown2() const {
+	inline quint8 TileData::TileInfo::getUnknown2() const {
 		return mUnknown2;
 	}
 
-	quint8 TileData::TileInfo::getStackOffset() const {
+	inline quint8 TileData::TileInfo::getStackOffset() const {
 		return mStackOffset;
 	}
 
-	quint8 TileData::TileInfo::getUnknown3() const {
+	inline quint8 TileData::TileInfo::getUnknown3() const {
 		return mUnknown3;
 	}
 
-	quint8 TileData::TileInfo::getWeight() const {
+	inline quint8 TileData::TileInfo::getWeight() const {
 		return mWeight;
+	}
+
+	inline bool TileData::TileInfo::isTile() const {
+		return true;
+	}
+
+	inline bool TileData::TileInfo::isValid() const {
+		return true;
 	}
 
 	inline QSharedPointer<TileData::Entry> TileData::getEntry( ID _id ) const {

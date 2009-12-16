@@ -32,17 +32,16 @@ Image Textures::decode( quint16 _width, quint16 _height, QByteArray _data, QShar
 	QDataStream stream(_data);
 	stream.setByteOrder(QDataStream::LittleEndian);
 
-	Image image( new QImage(_width,_height, QImage::Format_ARGB32) );
-	Q_ASSERT(!image.isNull());
-	image->fill(0x00000000);
+	QImage image(_width,_height, QImage::Format_ARGB32);
+	image.fill(0x00000000);
 
 	QVector<Colour16> imgData( _width*_height );
 	stream.readRawData( (char*)imgData.data(), sizeof(Colour16)*imgData.size() );
 
 	for( quint16 y = 0; y < _height; y ++ ) {
 		for( quint16 x = 0; x < _width; x++ ) {
-			image->setPixel( x, y, _hue->mapToHue(imgData[y*_height+x]));
+			image.setPixel( x, y, _hue->mapToHue(imgData[y*_height+x]));
 		}
 	}
-	return image;
+	return Image(new QPixmap(QPixmap::fromImage(image)));
 }

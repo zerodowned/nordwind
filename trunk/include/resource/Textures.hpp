@@ -1,12 +1,12 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
 #include "IndexFile.hpp"
-#include "Texture.hpp"
+#include "GraphicsTexture.hpp"
 
 namespace resource {
 	class Textures : protected IndexFile {
 		public:
-			class Entry : public Texture {
+			class Entry : public GraphicsTexture {
 				public:
 					Entry( ID _id, Image _image, Hue _hue );
 					virtual ~Entry();
@@ -18,8 +18,10 @@ namespace resource {
 			Image decode( quint16 _width, quint16 _height, QByteArray _data, Hue _hue );
 	};
 
+	typedef QSharedPointer<Textures::Entry> Texture;
+
 	inline Textures::Entry::Entry( ID _id, Image _image, Hue _hue )
-	: Texture( Object::Textures, _id, _image, _hue ) {
+	: GraphicsTexture( Object::Textures, _id, _image, _hue ) {
 	}
 
 	inline Textures::Entry::~Entry() {
