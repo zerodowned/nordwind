@@ -9,8 +9,9 @@
 #define INDEXFILE_HPP_
 
 #include <qobject.h>
-#include "..\Typedefs.hpp"
-#include "IndexEntry.hpp"
+#include <qhash.h>
+#include <qdatastream.h>
+#include "../util/Typedefs.hpp"
 
 namespace resource {
 

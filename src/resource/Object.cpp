@@ -4,8 +4,8 @@
  *  Created on: 14.12.2009
  *      Author: idstein
  */
-#include "Object.hpp"
-#include "Cache.hpp"
+#include "resource/Object.hpp"
+#include "resource/Cache.hpp"
 
 using namespace resource;
 
@@ -14,7 +14,7 @@ Object::Object( Object::Type _type, QByteArray _key )
   mKey(QByteArray::number(_type) + _key) {
 }
 
-virtual Object::~Object() {
+Object::~Object() {
 }
 
 void Object::cache() {

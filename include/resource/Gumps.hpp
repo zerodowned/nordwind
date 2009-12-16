@@ -7,7 +7,7 @@
 namespace resource {
     class Gumps : public IndexFile {
 		public:
-			class Entry : protected Texture {
+			class Entry : public Texture {
 				public:
 					Entry( ID _id, Image _image, QSharedPointer<Hues::Entry> _hue );
 					virtual ~Entry();
@@ -16,14 +16,16 @@ namespace resource {
 			virtual ~Gumps();
 			QSharedPointer<Entry> getEntry(ID _id, QSharedPointer<Hues::Entry> _hue);
 		protected:
-			Image decodeGump( quint16 _width, quint16 _height, QByteArray _data, QSharedPointer<Hues::Entry> _hue );
+			Image decodeGump( quint16 _width, quint16 _height, QByteArray _data, Hue _hue );
     };
+
+    typedef QSharedPointer<Gumps::Entry> Gump;
 
     inline Gumps::Entry::Entry(ID _id, Image _image, QSharedPointer<Hues::Entry> _hue )
     : Texture( Object::Gumps, _id, _image, _hue ) {
     }
 
-    inline Gumps::~Gumps() {
+    inline Gumps::Entry::~Entry() {
     }
 }
 

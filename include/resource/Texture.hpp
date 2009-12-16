@@ -8,24 +8,24 @@
 #ifndef TEXTURE_HPP_
 #define TEXTURE_HPP_
 
-#include "../Object.hpp"
+#include "Object.hpp"
 #include "Hues.hpp"
 
 namespace resource {
 	class Texture : public Object {
 		public:
-			Texture( Object::Type _type, ID _id, Image _image, QSharedPointer<Hues::Entry> _hue );
+			Texture( Object::Type _type, ID _id, Image _image, Hue _hue );
 			virtual ~Texture();
-			QSharedPointer<Hues::Entry> getHue() const;
+			Hue getHue() const;
 			ID getID() const;
 			Image getImage() const;
 		protected:
 			ID mID;
 			Image mImage;
-			QSharedPointer<Hues::Entry> mHue;
+			Hue mHue;
 	};
 
-	inline Texture::Texture( Object::Type _type, ID _id, Image _image, QSharedPointer<Hues::Entry> _hue )
+	inline Texture::Texture( Object::Type _type, ID _id, Image _image, Hue _hue )
 	: Object(_type, QByteArray::number(_type) + QByteArray::number(_id) ),
 	  mID(_id),
 	  mImage(_image),
@@ -39,7 +39,7 @@ namespace resource {
 		return mID;
 	}
 
-	inline QSharedPointer<Hues::Entry> Texture::getHue() const {
+	inline Hue Texture::getHue() const {
 		return mHue;
 	}
 

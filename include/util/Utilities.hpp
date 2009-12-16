@@ -11,18 +11,18 @@
 #include "Typedefs.hpp"
 
 
-inline quint8 qRed( Colour16 _colour16 ) const {
+inline quint8 qRed( Colour16 _colour16 ) {
 	return (_colour16 >> 7) & 0xF8;
 }
 
-inline quint8 qGreen( Colour16 _colour16 ) const {
+inline quint8 qGreen( Colour16 _colour16 ) {
 	return (_colour16 >> 2) & 0xF8;
 }
 
-inline quint8 qBlue( Colour16 _colour16 ) const {
+inline quint8 qBlue( Colour16 _colour16 ) {
 	return (_colour16 <<3) & 0xF8;
 }
-inline QRgb qRgb( Colour16 _colour16 ) const {
+inline QRgb qRgb( Colour16 _colour16 ) {
 	return qRgb( qRed(_colour16), qGreen(_colour16), qBlue(_colour16) );
 }
 
