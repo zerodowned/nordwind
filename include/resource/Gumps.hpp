@@ -2,12 +2,12 @@
 #define CGUMPS_H
 
 #include "IndexFile.hpp"
-#include "Texture.hpp"
+#include "GraphicsTexture.hpp"
 
 namespace resource {
     class Gumps : public IndexFile {
 		public:
-			class Entry : public Texture {
+			class Entry : public GraphicsTexture {
 				public:
 					Entry( ID _id, Image _image, QSharedPointer<Hues::Entry> _hue );
 					virtual ~Entry();
@@ -22,7 +22,7 @@ namespace resource {
     typedef QSharedPointer<Gumps::Entry> Gump;
 
     inline Gumps::Entry::Entry(ID _id, Image _image, QSharedPointer<Hues::Entry> _hue )
-    : Texture( Object::Gumps, _id, _image, _hue ) {
+    : GraphicsTexture( Object::Gumps, _id, _image, _hue ) {
     }
 
     inline Gumps::Entry::~Entry() {

@@ -12,10 +12,10 @@
 #include "Hues.hpp"
 
 namespace resource {
-	class Texture : public Object {
+	class GraphicsTexture : public Object {
 		public:
-			Texture( Object::Type _type, ID _id, Image _image, Hue _hue );
-			virtual ~Texture();
+			GraphicsTexture( Object::Type _type, ID _id, Image _image, Hue _hue );
+			virtual ~GraphicsTexture();
 			Hue getHue() const;
 			ID getID() const;
 			Image getImage() const;
@@ -25,25 +25,25 @@ namespace resource {
 			Hue mHue;
 	};
 
-	inline Texture::Texture( Object::Type _type, ID _id, Image _image, Hue _hue )
+	inline GraphicsTexture::GraphicsTexture( Object::Type _type, ID _id, Image _image, Hue _hue )
 	: Object(_type, QByteArray::number(_type) + QByteArray::number(_id) ),
 	  mID(_id),
 	  mImage(_image),
 	  mHue(_hue) {
 	}
 
-	inline Texture::~Texture() {
+	inline GraphicsTexture::~GraphicsTexture() {
 	}
 
-	inline ID Texture::getID() const {
+	inline ID GraphicsTexture::getID() const {
 		return mID;
 	}
 
-	inline Hue Texture::getHue() const {
+	inline Hue GraphicsTexture::getHue() const {
 		return mHue;
 	}
 
-	inline Image Texture::getImage() const {
+	inline Image GraphicsTexture::getImage() const {
 		return mImage;
 	}
 }

@@ -10,7 +10,7 @@ using namespace resource;
 
 QSharedPointer<Object> Cache::getPointer(const QByteArray& _key) {
 	QSharedPointer<Object> result;
-	if (mObjects.contains(_key)) {
+	if(mObjects.contains(_key)) {
 		result = QSharedPointer<Object> (mObjects[_key].data(), &Object::cache);
 	} else {
 		if (mCache.contains(_key)) {
@@ -19,4 +19,9 @@ QSharedPointer<Object> Cache::getPointer(const QByteArray& _key) {
 		}
 	}
 	return result;
+}
+
+void Cache::moveToCache( const QByteArray& _key, Object* _object ) {
+	mObjects.remove(_key);
+	mCache.insert(_key, _object);
 }

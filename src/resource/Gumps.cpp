@@ -27,9 +27,8 @@ QSharedPointer<Gumps::Entry> Gumps::getEntry( ID _id, QSharedPointer<Hues::Entry
 Image Gumps::decodeGump( quint16 _width, quint16 _height, QByteArray _data, Hue _hue ) {
 	Q_ASSERT_X(_width>0&&_height>0, __PRETTY_FUNCTION__,"Corrupt entry.");
 
-	Image image( new QImage( _width, _height, QImage::Format_ARGB32 ) );
-	Q_ASSERT(!image.isNull());
-	image->fill(0x00000000);
+	QImage image(_width,_height,QImage::Format_ARGB32);
+	image.fill(0x00000000);
 
 	QDataStream stream(_data);
 	// Read the lookup table
@@ -53,9 +52,9 @@ Image Gumps::decodeGump( quint16 _width, quint16 _height, QByteArray _data, Hue 
 			quint16 xend = qMax<quint16>( x+length, _width );
 			Colour pixel = _hue->mapToHue(colour);
 			while( x < xend ) {
-				image->setPixel( x,y, pixel );
+				image.setPixel( x,y, pixel );
 			}
 		}
 	}
-	return image;
+	return Image(new QPixmap(QPixmap::fromImage(image)));
 }

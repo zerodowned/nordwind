@@ -2,14 +2,14 @@
 #define __ART_H__
 
 #include "IndexFile.hpp"
-#include "Texture.hpp"
+#include "GraphicsTexture.hpp"
 #include <qmap.h>
 
 namespace resource {
 
 	class Arts : public IndexFile {
 		public:
-			class Entry : public Texture {
+			class Entry : public GraphicsTexture {
 				public:
 					Entry( ID _id, Image _image, Hue _hue );
 					virtual ~Entry();
@@ -42,10 +42,10 @@ namespace resource {
 			QMap<ID, qint64> mAnimDataOffsets;
 	};
 
-	typedef Arts::Entry Art;
+	typedef QSharedPointer<Arts::Entry> Art;
 
 	inline Arts::Entry::Entry( ID _id, Image _image, Hue _hue )
-	: Texture(Object::Arts, _id, _image, _hue) {
+	: GraphicsTexture(Object::Arts, _id, _image, _hue) {
 	}
 
 	inline Arts::Entry::~Entry() {

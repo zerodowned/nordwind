@@ -18,6 +18,7 @@ namespace resource {
 				Animations,
 				Arts,
 				Gumps,
+				Facet,
 				Textures
 			};
 			Object( Type _type, QByteArray _key );

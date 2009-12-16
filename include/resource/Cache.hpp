@@ -23,7 +23,7 @@ namespace resource {
 			QSharedPointer<T> lookup( const QByteArray& _key );
 			template<typename T>
 			QSharedPointer<T> manage( Object* object );
-			void moveToCache( QByteArray _key, Object* _object );
+			void moveToCache( const QByteArray& _key, Object* _object );
 		protected:
 			QSharedPointer<Object> getPointer( const QByteArray& _key );
 		private:
@@ -36,12 +36,6 @@ namespace resource {
 		return getPointer(_key).dynamicCast<T>();
 	}
 
-//	template <typename T, typename KEY>
-//	inline QSharedPointer<T> Cache::lookup( KEY _key ) {
-//		QByteArray key(QByteArray::fromRawData(static_cast<const char*>(&_key),sizeof(KEY)));
-//		return lookup(key);
-//	}
-
 	template <typename T>
 	inline QSharedPointer<T> Cache::manage( Object* _object ) {
 		// check if T is derivative of Object
@@ -50,11 +44,6 @@ namespace resource {
 			mObjects[result->getKey()] = result.toWeakRef();
 		}
 		return result.staticCast<T>();
-	}
-
-	inline void Cache::moveToCache( QByteArray _key, Object* _object ) {
-		mObjects.remove(_key);
-		mCache.insert(_key, _object);
 	}
 }
 

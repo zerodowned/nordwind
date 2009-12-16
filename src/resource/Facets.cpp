@@ -1,4 +1,5 @@
 #include "resource/Facets.hpp"
+#include "resource/Cache.hpp"
 #include <qfile.h>
 
 using namespace resource;
@@ -17,12 +18,12 @@ Facets::Entry::~Entry() {
 
 QSharedPointer<Facets::Block> Facets::Entry::getBlock( const QPoint& _blockPos ) {
 	ID id = getBlockID(_blockPos);
-	if(!mBlockCache.contains(id)) {
-		ID blockID = getBlockID(_blockPos);
-		Facets::Block* block = new Facets::Block( decodeMap( getMapData(blockID) ), decodeStatic( getData(blockID) ) );
-		mBlockCache.insert( id, new QSharedPointer<Facets::Block>( block ) );
+	QByteArray key = QByteArray::number(Object::Facet) + getName().toAscii() + QByteArray::number(id);
+	QSharedPointer<Facets::Block> result = Cache::instance().lookup<Facets::Block>(key);
+	if(result.isNull()) {
+		result = Cache::instance().manage<Facets::Block>( new Facets::Block( this, _blockPos, decodeMap( getMapData(id) ), decodeStatic( getData(id) ) ) );
 	}
-	return QSharedPointer<Facets::Block>( *(mBlockCache[id]) );
+	return result;
 }
 
 QByteArray Facets::Entry::getMapData( ID _id ) {

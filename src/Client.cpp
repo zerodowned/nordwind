@@ -1,16 +1,28 @@
 #include "Client.hpp"
+#include "core/UserInterface.hpp"
+#include "core/Resources.hpp"
+#include <qsettings.h>
 
 Client::Client( int argc, char** argv  ) 
-: QApplication(argc, argv), mSettings(NULL) {
-	setApplicationName( QApplication::tr("Windsegler") );
+: QApplication(argc, argv) {
+	setApplicationName( QApplication::tr("Nordwind") );
 	setApplicationVersion(  QApplication::tr("Alpha") );
 	setOrganizationDomain(  QApplication::tr("idstein.info") );
 	setOrganizationName(  QApplication::tr("Idstein") );
 }
 
 Client::~Client(void) {
-//	unload();
-	//shutdown(5000);
+	if(!mUserInterfaces.isNull())
+		delete mUserInterfaces.data();
+	if(!mResources.isNull())
+		delete mResources.data();
+}
+
+bool Client::load() {
+	QSettings settings( "config.ini", QSettings::IniFormat );
+	mResources = new resource::Resources(settings,this);
+	mUserInterfaces = new core::UserInterfaces();
+	return true;
 }
 
 /*

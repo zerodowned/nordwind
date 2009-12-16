@@ -87,7 +87,7 @@ namespace resource {
 			QVector<Section> mStructure;
 	};
 
-	typedef Animations::Entry Animation;
+	typedef QSharedPointer<Animations::Entry> Animation;
 
 	inline Animations::Sequence::Sequence() {
 	}

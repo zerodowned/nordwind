@@ -286,9 +286,8 @@ Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _dire
 
 	quint16 width, height;
 	_stream >> width >> height;
-	Image image( new QImage( width, height, QImage::Format_ARGB32 ) );
-	Q_ASSERT(!image.isNull());
-	image->fill(0x00000000);
+	QImage image( width, height, QImage::Format_ARGB32);
+	image.fill(0x00000000);
 
 	if( height != 0 && width != 0 ) {
 		// Start reading the frame runs
@@ -323,9 +322,9 @@ Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _dire
 			for (quint16 i = 0; i < length; i++, x++) {
 				quint8 pixel;
 				_stream >> pixel;
-				image->setPixel( x, y, _hueTable[pixel] );
+				image.setPixel( x, y, _hueTable[pixel] );
 			}
 		} while (true);
 	}
-	return Frame( center, image );
+	return Frame( center, Image( new QPixmap(QPixmap::fromImage(image)) ));
 }
