@@ -25,7 +25,7 @@ Resources::Resources( QSettings& _settings, QObject* _parent )
 	mArts = QSharedPointer<Arts>(new Arts(artAnim,artIndex,artData,this), &Arts::deleteLater);
 
 	mFacets = QSharedPointer<Facets>(new Facets(this), &Facets::deleteLater);
-	for( int i = _settings.beginReadArray("facets"); i > 0; i-- ) {
+	for( int i = _settings.beginReadArray("facets")-1; i >= 0; i-- ) {
 		_settings.setArrayIndex(i);
 		QString name = path.filePath(_settings.value("name").toString());
 		QString map = path.filePath(_settings.value("map").toString());
