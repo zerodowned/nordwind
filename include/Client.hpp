@@ -12,7 +12,7 @@
 class Client : public QApplication {
 	Q_OBJECT;
 	public:
-		Client( int argc, char** argv );
+		Client( int& argc, char** argv );
 		virtual ~Client();
 
 		bool load();
