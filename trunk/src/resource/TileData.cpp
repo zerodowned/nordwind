@@ -54,6 +54,7 @@ TileData::TileData(QString _fileName, QObject* _parent)
 		stream.readRawData( tmp, 20 );
 		entry->mName = tmp;
 		mEntries.insert( i, entry );
+                i++;
 	}
 }
 

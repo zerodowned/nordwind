@@ -59,6 +59,7 @@ namespace game {
 	  mPosition(_x,_y,_z) {
 		setPos(mPosition.toScenePos());
 		setZValue(mPosition.getLayer());
+                setVisible(true);
 	}
 
 	inline Entity::~Entity() {

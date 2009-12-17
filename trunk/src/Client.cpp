@@ -1,6 +1,8 @@
 #include "Client.hpp"
 #include "core/UserInterface.hpp"
 #include "core/Resources.hpp"
+#include "game/Scene.hpp"
+#include "game/View.hpp"
 #include <qsettings.h>
 
 Client::Client( int argc, char** argv  ) 
@@ -22,6 +24,11 @@ bool Client::load() {
 	QSettings settings( "config.ini", QSettings::IniFormat );
 	mResources = new resource::Resources(settings,this);
 	mUserInterfaces = new core::UserInterfaces();
+	game::Scene* scene = new game::Scene(mResources->getFacet("Siebenwind"),this);
+	game::View* view = new game::View(mUserInterfaces);
+	view->setScene(scene);
+        mUserInterfaces->addUI( view );
+        view->show();
 	return true;
 }
 
