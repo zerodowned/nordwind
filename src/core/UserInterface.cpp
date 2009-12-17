@@ -1,7 +1,9 @@
 #include "core/UserInterface.hpp"
 //#include <QGLWidget>
 #include <qmdiarea.h>
+#include <qmdisubwindow.h>
 #include <qtextedit.h>
+#include "game/View.hpp"
 
 using namespace core;
 
@@ -11,6 +13,7 @@ UserInterfaces::UserInterfaces()
 	QMdiArea* area = new QMdiArea(this);
 	area->setBackground( Qt::black );
 	setCentralWidget( area );
+        addUI( new game::View(this) );
 	show();
 }
 
@@ -20,6 +23,11 @@ UserInterfaces::~UserInterfaces() {
 QPointer<QMdiArea> UserInterfaces::getUIArea() {
 	return qobject_cast<QMdiArea*>(centralWidget());
 }
+
+UserInterfaces::UserInterface UserInterfaces::addUI(QWidget *_element) {
+    return UserInterfaces::UserInterface(getUIArea()->addSubWindow(_element));
+}
+
 //#include "CCursor.h"
 //#include <Qt/QLabel.h>
 //#include <Qt/QPushButton.h>

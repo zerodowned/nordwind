@@ -19,7 +19,11 @@ IndexFile::IndexFile(QString _indexFile, QString _dataFile, QObject *_parent)
 	Q_ASSERT_X(mIndexStream.device()->open( QIODevice::ReadOnly ) &&
 				 mDataStream.device()->open( QIODevice::ReadOnly ),
 				__PRETTY_FUNCTION__,
+<<<<<<< .mine
+                                QString("Unable to open file(s) in read-mode! %1 %2").arg(_indexFile).arg(_dataFile).toAscii().constData() );
+=======
 				QString("Unable to open file(s) in read-mode! %1 %2").arg(_indexFile).arg(_dataFile).toAscii().constData() );
+>>>>>>> .r23
 	mIndexStream.setByteOrder( QDataStream::LittleEndian );
 	mDataStream.setByteOrder( QDataStream::LittleEndian );
 	quint32 entry_count = mIndexStream.device()->size()/12;

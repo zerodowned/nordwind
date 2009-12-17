@@ -23,7 +23,7 @@ namespace game {
 		virtual ~Scene();
 	private:
 		resource::Facet mFacet;
-		QList<Block*> mBlocks;
+		QList< QSharedPointer<Block> > mBlocks;
 	};
 }
 #endif
