@@ -12,39 +12,39 @@ Resources::Resources( QSettings& _settings, QObject* _parent )
 
 	QDir path( _settings.value( "path", "." ).toString() );
 
-	QString hue = _settings.value("hue", "hues.mul").toString();
-	mHues = QSharedPointer<Hues>(new Hues(path.filePath(hue), this), &Hues::deleteLater);
+	QString hue = path.filePath(_settings.value("hue", "hues.mul").toString());
+	mHues = QSharedPointer<Hues>(new Hues(hue, this), &Hues::deleteLater);
 
-	QString animIndex = _settings.value("animations/index","anim.idx").toString();
-	QString animData = _settings.value("animations/data","anim.mul").toString();
+	QString animIndex = path.filePath(_settings.value("animations/index","anim.idx").toString());
+	QString animData = path.filePath(_settings.value("animations/data","anim.mul").toString());
 	mAnimations = QSharedPointer<Animations>(new Animations(animIndex,animData,this), &Animations::deleteLater);
 
-	QString artIndex = _settings.value("arts/index","artidx.mul").toString();
-	QString artData = _settings.value("arts/data","art.mul").toString();
-	QString artAnim = _settings.value("arts/animdata","animdata.mul").toString();
+	QString artIndex = path.filePath(_settings.value("arts/index","artidx.mul").toString());
+	QString artData = path.filePath(_settings.value("arts/data","art.mul").toString());
+	QString artAnim = path.filePath(_settings.value("arts/animdata","animdata.mul").toString());
 	mArts = QSharedPointer<Arts>(new Arts(artAnim,artIndex,artData,this), &Arts::deleteLater);
 
 	mFacets = QSharedPointer<Facets>(new Facets(this), &Facets::deleteLater);
 	for( int i = _settings.beginReadArray("facets"); i > 0; i-- ) {
 		_settings.setArrayIndex(i);
-		QString name = _settings.value("name").toString();
-		QString map = _settings.value("map").toString();
+		QString name = path.filePath(_settings.value("name").toString());
+		QString map = path.filePath(_settings.value("map").toString());
 		QSize dimension = _settings.value("size").toSize();
-		QString staticsIndex = _settings.value("index").toString();
-		QString staticsData = _settings.value("data").toString();
+		QString staticsIndex = path.filePath(_settings.value("index").toString());
+		QString staticsData = path.filePath(_settings.value("data").toString());
 		mFacets->addFacet(name,map,dimension,staticsIndex,staticsData);
 	}
 	_settings.endArray();
 
-	QString gumpIndex = _settings.value("gumps/index","gumps.idx").toString();
-	QString gumpData = _settings.value("gumps/data","gumps.mul").toString();
+	QString gumpIndex = path.filePath(_settings.value("gumps/index","gumps.idx").toString());
+	QString gumpData = path.filePath(_settings.value("gumps/data","gumps.mul").toString());
 	mGumps = QSharedPointer<Gumps>(new Gumps(gumpIndex,gumpData,this), &Gumps::deleteLater);
 
-	QString textureIndex = _settings.value("textures/index","texidx.mul").toString();
-	QString textureData = _settings.value("textures/data","texmaps.mul").toString();
+	QString textureIndex = path.filePath(_settings.value("textures/index","texidx.mul").toString());
+	QString textureData = path.filePath(_settings.value("textures/data","texmaps.mul").toString());
 //	mTextures = QSharedPointer<Textures>(new Textures(textureIndex,textureData,this), &Textures::deleteLater);
 
-	QString tileData = _settings.value("tiledata","tiledata.mul").toString();
+	QString tileData = path.filePath(_settings.value("tiledata","tiledata.mul").toString());
 	mTileData = QSharedPointer<TileData>(new TileData(tileData,this), &TileData::deleteLater);
 
 	_settings.endGroup();
@@ -70,7 +70,7 @@ Art Resources::getStaticArt( ID _id, ID _hueID, bool _partialHue ) {
 }
 //		  QImage* getCursor( qint32& _hotX, qint32& _hotY, quint32 _id, quint32 _hue, bool _partialHue );
 Gump Resources::getGump( ID _id, ID _hueID, bool _partialHue) {
-	return mGumps->getEntry(_id, getHue(_id,_partialHue));
+	return mGumps->getEntry(_id, getHue(_hueID,_partialHue));
 }
 
 Texture Resources::getTexture( ID _id, ID _hueID, bool _partialHue ) {

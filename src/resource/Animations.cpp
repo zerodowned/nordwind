@@ -67,15 +67,15 @@ Animations::Animations(QString _indexFile, QString _dataFile, QObject* _parent )
 	mStructure.push_back( Section(Animations::Equipment,SectionStructure(0xFFFFFFFF,175) ) );
 
 //	Anim2
-//		200 monsters à 110 actions
-//		x animals à 65 actions
+//		200 monsters ï¿½ 110 actions
+//		x animals ï¿½ 65 actions
 //	Anim3
-//		300 animals à 65 actions
-//		100 monsters à 110 actions
-//		x equipement à 175 actions
+//		300 animals ï¿½ 65 actions
+//		100 monsters ï¿½ 110 actions
+//		x equipement ï¿½ 175 actions
 //	Anim4
-//		200 animals á 65 actions
-//		200 monsters à 110 actions
+//		200 animals ï¿½ 65 actions
+//		200 monsters ï¿½ 110 actions
 //		x equipement ``a 175 actions
 }
 

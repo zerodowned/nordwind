@@ -13,7 +13,7 @@ IndexFile::IndexFile(QString _indexFile, QString _dataFile, QObject *_parent)
 : QObject(_parent) {
 	Q_ASSERT_X( QFile::exists( _indexFile ) && QFile::exists(_dataFile),
 				__PRETTY_FUNCTION__,
-				"File(s) not available! Is the path correct?");
+				QString("File(s) not available! Is the path correct? %1 %2").arg(_indexFile).arg(_dataFile).toAscii().constData());
 	mIndexStream.setDevice( new QFile( _indexFile, this ) );
 	mDataStream.setDevice(  new QFile( _dataFile, this ) );
 	Q_ASSERT_X(mIndexStream.device()->open( QIODevice::ReadOnly ) &&
