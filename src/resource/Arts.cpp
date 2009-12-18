@@ -137,8 +137,8 @@ Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 	quint32 flag;
 	stream >> flag;
 	// RAW Tile check
-	if(flag<0xFFFF && flag > 0)
-		return decodeStatic(_data,_hue);
+//	if(flag<0xFFFF && flag > 0)
+//		return decodeStatic(_data,_hue);
 
 	QImage image(44,44,QImage::Format_ARGB32);
 	image.fill( 0x00000000 );
@@ -147,20 +147,16 @@ Image Arts::decodeLand( QByteArray _data, QSharedPointer<Hues::Entry> _hue ) {
 	stream.readRawData( (char*)imgData.data(), sizeof(Colour16)<<10 );
 
 	quint16 coffset = 0;
-	quint8 span = 2;
-	for( quint8 y = 0; y < 21; y++ ) {
-		for( quint8 x = 21 - y; x < span; x++ ) {
+        quint8 x, y;
+        for( y = 0; y < 22; y++ ) {
+                for( x = 21 - y; x < (23+y); x++, coffset++ ) {
 			image.setPixel( x,y, _hue->mapToHue(imgData[coffset]));
-			coffset++;
 		}
-		span+=2;
 	}
-	for( quint8 y = 22; y < 44; y++ ) {
-		for( quint8 x = 0 + y-22; x < span; x++ ) {
+        for( ; y < 44; y++ ) {
+                for( x = y-22; x < (66-y); x++, coffset++ ) {
 			image.setPixel( x,y, _hue->mapToHue(imgData[coffset]));
-			coffset++;
 		}
-		span-=2;
 	}
 	return Image(new QPixmap(QPixmap::fromImage(image)));
 }

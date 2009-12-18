@@ -39,7 +39,7 @@ namespace resource {
 				public:
 					Entry( QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent);
 					virtual ~Entry();
-					QSharedPointer<Block> getBlock( const QPoint& _blockPos );
+					QSharedPointer<Block> getBlock( const QPoint& _Pos );
 					bool isSameBlock( const QPoint& _posA, const QPoint& _posB ) const;
 					QSize getDimension() const;
 					QString getName() const;

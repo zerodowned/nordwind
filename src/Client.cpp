@@ -5,7 +5,7 @@
 #include "game/View.hpp"
 #include <qsettings.h>
 
-Client::Client( int argc, char** argv  ) 
+Client::Client( int& argc, char** argv  )
 : QApplication(argc, argv) {
 	setApplicationName( QApplication::tr("Nordwind") );
 	setApplicationVersion(  QApplication::tr("Alpha") );

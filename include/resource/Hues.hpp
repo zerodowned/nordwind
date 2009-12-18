@@ -106,6 +106,7 @@ namespace resource {
 
 	inline Hues::DefaultHue::DefaultHue()
 	: Hues::Entry( QSharedPointer<Hues::RawHue>( new Hues::RawHue ) ) {
+		mRawHue->mID = 0;
 	}
 
 	inline Colour Hues::DefaultHue::mapToHue( Colour16 _colour ) const {
@@ -117,17 +118,19 @@ namespace resource {
 	}
 
 	inline QSharedPointer<Hues::Entry> Hues::getHue(ID _id, bool _partialHue) const {
-		if ((int)(_id) > mHues.size())
-			return mDefaultHue;
+            if (_id==0 || ((int)(_id) > mHues.size())) {
+			return getDefaultHue();
+            } else {
 		if(_partialHue) {
 			return QSharedPointer<Hues::PartialHue>( new Hues::PartialHue(mHues[_id]) );
 		} else {
 			return QSharedPointer<Entry>( new Hues::Entry(mHues[_id]) );
 		}
+            }
 	}
 
 	inline QSharedPointer<Hues::Entry> Hues::getDefaultHue() const {
-		return mDefaultHue;
+            return mDefaultHue.staticCast<Hues::Entry>();
 	}
 }
 #endif

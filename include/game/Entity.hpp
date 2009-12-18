@@ -59,7 +59,8 @@ namespace game {
 	  mPosition(_x,_y,_z) {
 		setPos(mPosition.toScenePos());
 		setZValue(mPosition.getLayer());
-                setVisible(true);
+        setVisible(true);
+        setToolTip(QString("(%1|%2|%3)").arg(_x).arg(_y).arg(_z));
 	}
 
 	inline Entity::~Entity() {
