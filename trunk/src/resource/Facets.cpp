@@ -17,13 +17,10 @@ Facets::Entry::~Entry() {
 }
 
 QSharedPointer<Facets::Block> Facets::Entry::getBlock( const QPoint& _blockPos ) {
-	ID id = getBlockID(_blockPos);
-	QByteArray key = QByteArray::number(Object::Facet) + getName().toAscii() + QByteArray::number(id);
-	QSharedPointer<Facets::Block> result = Cache::instance().lookup<Facets::Block>(key);
-	if(result.isNull()) {
-		result = Cache::instance().manage<Facets::Block>( new Facets::Block( this, QPoint(_blockPos.x()-_blockPos.x()%8,_blockPos.y()-_blockPos.y()%8), decodeMap( getMapData(id) ), decodeStatic( getData(id) ) ) );
-	}
-	return result;
+	ID id = convertBlockPosToID(_blockPos);
+	return QSharedPointer<Block>( new Block(QPoint(_blockPos.x()*mBlockSize.width(),_blockPos.y()*mBlockSize.height()),
+											decodeMap( getMapData(id) ),
+											decodeStatic( getData(id) )));
 }
 
 QByteArray Facets::Entry::getMapData( ID _id ) {

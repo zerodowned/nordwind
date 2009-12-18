@@ -24,32 +24,34 @@ namespace resource {
 			};
 			typedef QVector<MapTile> MapTiles;
 			typedef QVector<StaticTile> StaticTiles;
-			class Entry;
-			class Block : public QPair<MapTiles,StaticTiles>, public Object {
+			class Block {
 				public:
-					Block( QPointer<Entry> _facet, QPoint _offset, MapTiles _mapTiles, StaticTiles _staticTiles );
-					virtual ~Block();
+					Block( const QPoint& _offset, const MapTiles& _mapTiles, const StaticTiles& _staticTiles );
 					QPoint getOffset() const;
-					QPointer<Entry> getFacet() const;
+					MapTiles getMapTiles() const;
+					StaticTiles getStaticTiles() const;
 				private:
-					QPointer<Entry> mFacet;
 					QPoint mOffset;
+					MapTiles mMapTiles;
+					StaticTiles mStaticTiles;
 			};
 			class Entry : public IndexFile {
 				public:
-					Entry( QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent);
+					Entry( QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent, QSize _blockSize = QSize(8,8));
 					virtual ~Entry();
-					QSharedPointer<Block> getBlock( const QPoint& _Pos );
+					QSharedPointer<Block> getBlock( const QPoint& _blockPos );
 					bool isSameBlock( const QPoint& _posA, const QPoint& _posB ) const;
-					QSize getDimension() const;
+					QSize getSize() const;
 					QString getName() const;
-					ID getBlockID( const QPoint& _pos ) const;
+					ID getBlockID( QPoint _pos ) const;
 				private:
+					ID convertBlockPosToID( const QPoint& _pos ) const;
 					QByteArray getMapData( ID _id );
 					MapTiles decodeMap( QByteArray _data );
 					StaticTiles decodeStatic( QByteArray _data );
 					QString mName;
-					QSize mDimension; // dimension counted in blocks!
+					QSize mSize; // dimension counted in blocks!
+					QSize mBlockSize;
 					QDataStream mMapStream;
 			};
 			Facets( QObject* _parent );
@@ -57,39 +59,44 @@ namespace resource {
 			Facets& addFacet( QString _name, QString _mapFile, QSize _dimension, QString _staticsIndex, QString _staticsData );
 			QSharedPointer<Facets::Entry> getFacet( QString _name );
 		private:
-			QMap<QString, QSharedPointer<Entry> > mFacets;
+			QHash<QString, QSharedPointer<Entry> > mFacets;
 	};
 
 	typedef QSharedPointer<Facets::Entry> Facet;
+	typedef Facets::Block Block;
 
-	inline Facets::Block::Block( QPointer<Facets::Entry> _facet, QPoint _offset, MapTiles _mapTiles, StaticTiles _staticTiles )
-	: QPair<MapTiles,StaticTiles>(_mapTiles,_staticTiles),
-	  Object( Object::Facet, (_facet->getName().toAscii())+QByteArray::number(_facet->getBlockID(_offset)) ),
-	  mFacet(_facet),
-	  mOffset(_offset) {
+	inline Facets::Block::Block(const QPoint& _offset, const Facets::MapTiles& _mapTiles, const Facets::StaticTiles& _staticTiles )
+	: mOffset(_offset),
+	  mMapTiles(_mapTiles),
+	  mStaticTiles(_staticTiles) {
 	}
 
-	inline Facets::Block::~Block() {
-	}
-
-	inline QPoint Facets::Block::getOffset() const {
+	inline QPoint Facets::Block::getOffset() {
 		return mOffset;
 	}
 
-	inline QPointer<Facets::Entry> Facets::Block::getFacet() const {
-		return mFacet;
+	inline Facets::MapTiles Facets::Block::getMapTiles() const {
+		return mMapTiles;
+	}
+
+	inline Facets::StaticTiles Facets::Block::getStaticTiles() const {
+		return mStaticTiles;
 	}
 
 	inline bool Facets::Entry::isSameBlock( const QPoint& _posA, const QPoint& _posB ) const {
 		return (getBlockID(_posA)==getBlockID(_posB)) ? true : false;
 	}
 
-	inline ID Facets::Entry::getBlockID( const QPoint& _pos ) const {
-		return (_pos.x()/8*mDimension.height()) + _pos.y()/8;
+	inline ID Facets::Entry::getBlockID( QPoint _pos ) const {
+		return convertBlockPosToID( QPoint(_pos.x()/mBlockSize.x(), _pos.y()/mBlockSize.y()) );
 	}
 
-	inline QSize Facets::Entry::getDimension() const {
-		return mDimension;
+	inline ID Facets::Entry::convertBlockPosToID( const QPoint& _blockPos ) const {
+		return (_pos.x()*mSize.height()) + _pos.y();
+	}
+
+	inline QSize Facets::Entry::getSize() const {
+		return mSize;
 	}
 
 	inline QString Facets::Entry::getName() const {

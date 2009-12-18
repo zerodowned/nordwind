@@ -6,24 +6,28 @@
 #include "../resource/Facets.hpp"
 
 namespace game {
-	class Scene : public QGraphicsScene
+	class Scene;
+	class Scene : protected QGraphicsScene
 	{
 		Q_OBJECT;
-	public:
-		class Block {
-			public:
-				Block( QSharedPointer<resource::Facets::Block> _rawBlock );
-				virtual ~Block();
-				void load( QGraphicsScene* _scene );
-			private:
-				QSharedPointer<resource::Facets::Block> mRawBlock;
-				QVector< QVector< QList< QSharedPointer<QGraphicsItem> > > > mTiles;
-		};
-		Scene( resource::Facet _facet, QObject* parent);
-		virtual ~Scene();
-	private:
-		resource::Facet mFacet;
-		QList< QSharedPointer<Block> > mBlocks;
+		public:
+			class Block : public QObject {
+				public:
+					Block( QPointer<Scene> _scene, QSharedPointer<resource::Block> _rawBlock );
+					virtual ~Block();
+					void moveToCache();
+					void load( QGraphicsScene* _scene );
+				private:
+					QPointer<Scene> mScene;
+					QMultiMap< QPoint, QSharedPointer<QGraphicsItem> > mTiles;
+			};
+			Scene( resource::Facet _facet, QObject* parent);
+			virtual ~Scene();
+			void connectNotify( const char* _signal );
+		private:
+			resource::Facet mFacet;
+			QMap< QPoint, QWeakPointer<Block> > mBlocks;
+			QCache< QPoint, Block > mCache;
 	};
 }
 #endif
