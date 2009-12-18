@@ -21,7 +21,7 @@ QSharedPointer<Facets::Block> Facets::Entry::getBlock( const QPoint& _blockPos )
 	QByteArray key = QByteArray::number(Object::Facet) + getName().toAscii() + QByteArray::number(id);
 	QSharedPointer<Facets::Block> result = Cache::instance().lookup<Facets::Block>(key);
 	if(result.isNull()) {
-		result = Cache::instance().manage<Facets::Block>( new Facets::Block( this, _blockPos, decodeMap( getMapData(id) ), decodeStatic( getData(id) ) ) );
+		result = Cache::instance().manage<Facets::Block>( new Facets::Block( this, QPoint(_blockPos.x()-_blockPos.x()%8,_blockPos.y()-_blockPos.y()%8), decodeMap( getMapData(id) ), decodeStatic( getData(id) ) ) );
 	}
 	return result;
 }
