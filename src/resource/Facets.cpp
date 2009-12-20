@@ -16,11 +16,17 @@ Facets::Entry::Entry(QString _name, QString _mapFile, QSize _dimension, QString 
 Facets::Entry::~Entry() {
 }
 
-QSharedPointer<Facets::Block> Facets::Entry::getBlock( const QPoint& _blockPos ) {
+Facets::Block Facets::Entry::getBlock( const QPoint& _blockPos ) {
 	ID id = convertBlockPosToID(_blockPos);
-	return QSharedPointer<Facets::Block>( new Block(QPoint(_blockPos.x()*mBlockSize.width(),_blockPos.y()*mBlockSize.height()),
-											decodeMap( getMapData(id) ),
-											decodeStatic( getData(id) )));
+
+	if(!mCache.contains(id)) {
+		Facets::Block block(QPoint(_blockPos.x()*mBlockSize.width(),_blockPos.y()*mBlockSize.height()),
+													decodeMap( getMapData(id) ),
+													decodeStatic( getData(id) ) );
+		mCache.insert(id, new Block(block));
+		return block;
+	}
+	return Block(*(mCache[id]));
 }
 
 QByteArray Facets::Entry::getMapData( ID _id ) {
@@ -31,30 +37,34 @@ QByteArray Facets::Entry::getMapData( ID _id ) {
 }
 
 Facets::MapTiles Facets::Entry::decodeMap( QByteArray _data ) {
-	QDataStream stream(_data);
-	stream.setByteOrder(QDataStream::LittleEndian);
-	stream.skipRawData(4); //skip header
 	MapTiles result;
-	for( quint8 i = 0; i < 64; i ++ ) {
-		MapTile mapTile;
-		stream >> mapTile.mID >> mapTile.mZ;
-		result.push_back(mapTile);
+	if(!_data.isEmpty()) {
+		QDataStream stream(_data);
+		stream.setByteOrder(QDataStream::LittleEndian);
+		stream.skipRawData(4); //skip header
+		for( quint8 i = 0; i < 64; i ++ ) {
+			MapTile mapTile;
+			stream >> mapTile.mID >> mapTile.mZ;
+			result.push_back(mapTile);
+		}
 	}
 	return result;
 }
 
 Facets::StaticTiles Facets::Entry::decodeStatic( QByteArray _data ) {
-	QDataStream stream(_data);
-	stream.setByteOrder(QDataStream::LittleEndian);
-        StaticTiles result;
-        while(!stream.atEnd()) {
-            StaticTile staticTile;
-            stream >> staticTile.mID
-                       >> staticTile.mXOffset
-                       >> staticTile.mYOffset
-                       >> staticTile.mZ
-                       >> staticTile.mHueID;
-            result.push_back(staticTile);
+	StaticTiles result;
+	if(!_data.isEmpty()) {
+		QDataStream stream(_data);
+		stream.setByteOrder(QDataStream::LittleEndian);
+		while(!stream.atEnd()) {
+			StaticTile staticTile;
+			stream >> staticTile.mID
+			>> staticTile.mXOffset
+			>> staticTile.mYOffset
+			>> staticTile.mZ
+			>> staticTile.mHueID;
+			result.push_back(staticTile);
+		}
 	}
 	return result;
 }

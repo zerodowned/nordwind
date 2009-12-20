@@ -15,14 +15,20 @@ namespace game {
 
 	class MapEntity : public Entity {
 		public:
-			MapEntity( QPoint _offset, QPoint _pos, resource::Facets::MapTile& _data );
-			void paint( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0 );
+			MapEntity( QPoint _position, resource::Facets::MapTile& _data,
+				const resource::Facets::MapTile& _south,
+				const resource::Facets::MapTile& _down,
+				const resource::Facets::MapTile& _east );
+			void paint( QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget = 0 );
+		protected:
+                        quint16 calculateStrech( qint16 _z1, qint16 _z2 ) const;
 		private:
-//			QSharedPointer<MapEntity> mSouth;
-//			QSharedPointer<MapEntity> mEast;
-//			QSharedPointer<MapEntity> mDown;
 			resource::Facets::MapTile& mData;
 			QSharedPointer<resource::Land> mLand;
+                       quint16 mHl;
+                        quint16 mHr;
+                        quint16 mStl;
+                        quint16 mStr;
 	};
 }
 

@@ -11,6 +11,8 @@ namespace game {
 //			void setScene( QPointer<Scene> _scene );
 //			void setSceneRect( qreal _x, qreal _y, qreal _z, qreal _width, qreal _height );
 			virtual ~View();
+		Q_SLOTS
+			void moveView( QPoint _position, qint16 _z );
 	};
 }
 #endif
