@@ -2,6 +2,7 @@
 #define CMAPS_H_
 
 #include "IndexFile.hpp"
+#include <qcache.h>
 
 namespace resource {
 
@@ -23,23 +24,29 @@ namespace resource {
 			class Block {
 				public:
 					Block( const QPoint& _offset, const MapTiles& _mapTiles, const StaticTiles& _staticTiles );
+					Block( const Block& _o );
 					QPoint getOffset() const;
 					MapTiles getMapTiles() const;
 					StaticTiles getStaticTiles() const;
 				private:
-					QPoint mOffset;
-					MapTiles mMapTiles;
-					StaticTiles mStaticTiles;
+					class Private : public QSharedData {
+						public:
+							QPoint mOffset;
+							MapTiles mMapTiles;
+							StaticTiles mStaticTiles;
+					};
+					QSharedDataPointer<Private> mData;
 			};
 			class Entry : public IndexFile {
 				public:
 					Entry( QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent, QSize _blockSize = QSize(8,8));
 					virtual ~Entry();
-					QSharedPointer<Block> getBlock( const QPoint& _blockPos );
+					Block getBlock( const QPoint& _blockPos );
 					bool isSameBlock( const QPoint& _posA, const QPoint& _posB ) const;
 					QSize getSize() const;
 					QString getName() const;
 					ID getBlockID( QPoint _pos ) const;
+					QPoint fromCellToBlockPosition( QPoint _cell ) const;
 				private:
 					ID convertBlockPosToID( const QPoint& _pos ) const;
 					QByteArray getMapData( ID _id );
@@ -63,21 +70,26 @@ namespace resource {
 	typedef Facets::Block Block;
 
 	inline Facets::Block::Block(const QPoint& _offset, const Facets::MapTiles& _mapTiles, const Facets::StaticTiles& _staticTiles )
-	: mOffset(_offset),
-	  mMapTiles(_mapTiles),
-	  mStaticTiles(_staticTiles) {
+	: mData(new Facets::Block::Private) {
+		mData->mOffset = _offset;
+		mData->mMapTiles = _mapTiles;
+		mData->mStaticTiles = _staticTiles;
+	}
+
+	inline Facets::Block::Block(const Facets::Block& _o)
+	: mData(_o.mData) {
 	}
 
 	inline QPoint Facets::Block::getOffset() const {
-		return mOffset;
+		return mData->mOffset;
 	}
 
 	inline Facets::MapTiles Facets::Block::getMapTiles() const {
-		return mMapTiles;
+		return mData->mMapTiles;
 	}
 
 	inline Facets::StaticTiles Facets::Block::getStaticTiles() const {
-		return mStaticTiles;
+		return mData->mStaticTiles;
 	}
 
 	inline bool Facets::Entry::isSameBlock( const QPoint& _posA, const QPoint& _posB ) const {
@@ -85,7 +97,11 @@ namespace resource {
 	}
 
 	inline ID Facets::Entry::getBlockID( QPoint _pos ) const {
-		return convertBlockPosToID( QPoint(_pos.x()/mBlockSize.width(), _pos.y()/mBlockSize.height()) );
+		return convertBlockPosToID( fromCellToBlockPosition(_pos) );
+	}
+
+	inline QPoint Facets::Entry::fromCellToBlockPosition( QPoint _cell ) const {
+		return QPoint(_cell.x()/mBlockSize.width(),_cell.y()/mBlockSize.height());
 	}
 
 	inline ID Facets::Entry::convertBlockPosToID( const QPoint& _blockPos ) const {
