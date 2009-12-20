@@ -2,10 +2,6 @@
 #define CMAPS_H_
 
 #include "IndexFile.hpp"
-#include "Object.hpp"
-#include <qcache.h>
-#include <qmap.h>
-#include <qpointer.h>
 
 namespace resource {
 
@@ -13,7 +9,7 @@ namespace resource {
 		public:
 			struct MapTile {
 				quint16 mID;
-				quint8 mZ;
+				qint8 mZ;
 			};
 			struct StaticTile {
 				quint16 mID;
@@ -53,6 +49,7 @@ namespace resource {
 					QSize mSize; // dimension counted in blocks!
 					QSize mBlockSize;
 					QDataStream mMapStream;
+					QCache<ID,Block> mCache;
 			};
 			Facets( QObject* _parent );
 			virtual ~Facets();
@@ -71,7 +68,7 @@ namespace resource {
 	  mStaticTiles(_staticTiles) {
 	}
 
-	inline QPoint Facets::Block::getOffset() {
+	inline QPoint Facets::Block::getOffset() const {
 		return mOffset;
 	}
 
@@ -88,11 +85,11 @@ namespace resource {
 	}
 
 	inline ID Facets::Entry::getBlockID( QPoint _pos ) const {
-		return convertBlockPosToID( QPoint(_pos.x()/mBlockSize.x(), _pos.y()/mBlockSize.y()) );
+		return convertBlockPosToID( QPoint(_pos.x()/mBlockSize.width(), _pos.y()/mBlockSize.height()) );
 	}
 
 	inline ID Facets::Entry::convertBlockPosToID( const QPoint& _blockPos ) const {
-		return (_pos.x()*mSize.height()) + _pos.y();
+		return (_blockPos.x()*mSize.height()) + _blockPos.y();
 	}
 
 	inline QSize Facets::Entry::getSize() const {

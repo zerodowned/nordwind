@@ -9,17 +9,15 @@
 
 using namespace game;
 
-MapEntity::MapEntity( QPoint _offset, quint8 _x, quint8 _y, resource::Facets::MapTile& _data )
-: Entity(_offset.x()+_x,_offset.y()+_y, _data.mZ),
-  mData(_data),
-  mArt(Client::getInstance()->mResources->getLandArt(_data.mID)),
-  mInfo(Client::getInstance()->mResources->getTileInfo(_data.mID).staticCast<resource::TileData::LandInfo>()) {
-	if(mInfo->getTextureID()!=0)
-		mTexture = Client::getInstance()->mResources->getTexture(mInfo->getTextureID());
-	setPixmap(*(mArt->getImage()));
-}
-
-MapEntity::~MapEntity() {
+MapEntity::MapEntity( QPoint _offset, QPoint _pos, resource::Facets::MapTile& _data )
+: Entity(_offset+_pos, _data.mZ, -4.0f),
+  mData(_data) {
+	mLand = Client::getInstance()->mResources->getLand(_data.mID);
+//	if(mInfo->getTextureID()!=0)
+//		mTexture = Client::getInstance()->mResources->getTexture(mInfo->getTextureID());
+	setPixmap(mLand->mArt);
+    setOffset(0.0f,-mLand->mArt.height());
+    setToolTip(toolTip()+"\n"+mLand->mInfo);
 }
 
 void MapEntity::paint( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget ) {

@@ -9,61 +9,22 @@
 #define ANIMATION_HPP_
 
 #include "IndexFile.hpp"
-#include "Object.hpp"
 #include "Hues.hpp"
 #include <qpair.h>
 #include <qmap.h>
 
 namespace resource {
 
-	class Animations; //forward declaration
-
+	class Animation;
 	class Animations: public IndexFile {
 	public:
-		typedef QPoint Center;
-		typedef QPair<Center, Image> Frame;
-		class Sequence {
-			public:
-				Sequence(Action _action, Direction _direction, QVector<Frame> _frames);
-				Sequence();
-				Sequence(const Sequence& o);
-				~Sequence();
-				bool isValid() const;
-				Action getAction() const;
-				Direction getDirection() const;
-				QVector<Frame> getFrames() const;
-			private:
-				Action mAction;
-				Direction mDirection;
-				QVector<Frame> mFrames;
-		};
-		typedef QHash<Direction, Sequence> Directions;
-		typedef QHash<Action, Directions> Actions;
-		class Entry: public Object {
-			public:
-				Entry( QWeakPointer<resource::Animations> _loader, Body _body, Hue _hue);
-				virtual ~Entry();
-				Entry& addSequence(const Sequence& _sequence);
-				Sequence getSequence(Action _action, Direction _direction);
-				Actions getActions() const;
-				Body getBody() const;
-				Hue getHue() const;
-			private:
-				Body mBody;
-				Hue mHue;
-				QWeakPointer<resource::Animations> mLoader;
-				Actions mActions;
-		};
 		enum Type {
 			Monster, Animal, Character, Equipment
 		};
 		Animations(QString _indexFile, QString _dataFile,
 				QObject* _parent);
-		virtual ~Animations();
 		Animations& loadBodyDef(QString _fileName);
-		QSharedPointer<Entry> getAnimation(Body _body, Action _action,
-				Direction _direction, Hue _hue);
-		Animations& loadSequence(Entry* _animation, Action _action, Direction _direction);
+		Animations& getSequence(Animation* _animation, Action _action, Direction _direction);
 		private:
 			//Animations& loadBodyConvDev(QString _fileName);
 			//Animations& loadMobTypesTxt(QString _fileName);
@@ -86,44 +47,6 @@ namespace resource {
 			typedef QPair<Type, SectionStructure> Section;
 			QVector<Section> mStructure;
 	};
-
-	typedef QSharedPointer<Animations::Entry> Animation;
-
-	inline Animations::Sequence::Sequence() {
-	}
-
-	inline bool Animations::Sequence::isValid() const {
-		return (mFrames.size() > 0) ? true : false;
-	}
-
-	inline Action Animations::Sequence::getAction() const {
-		return mAction;
-	}
-
-	inline Direction Animations::Sequence::getDirection() const {
-		return mDirection;
-	}
-
-	inline Animations::Entry & Animations::Entry::addSequence(const Animations::Sequence & _sequence) {
-		mActions[_sequence.getAction()][_sequence.getDirection()] = _sequence;
-		return *this;
-	}
-
-	inline QVector<Animations::Frame> Animations::Sequence::getFrames() const {
-		return mFrames;
-	}
-
-	inline Animations::Actions Animations::Entry::getActions() const {
-		return mActions;
-	}
-
-	inline Body Animations::Entry::getBody() const {
-		return mBody;
-	}
-
-	inline Hue Animations::Entry::getHue() const {
-		return mHue;
-	}
 }
 
 #endif /* ANIMATION_HPP_ */
