@@ -13,65 +13,87 @@
 namespace game {
 	class Entity : public QGraphicsPixmapItem {
 		public:
-			class Position {
-				public:
-					Position();
-					Position(quint16 _x, quint16 _y, qint16 _z);
-					quint16 mX;
-					quint16 mY;
-					qint16 mZ;
-					qint16 mLayerModifier;
-					QPointF toScenePos() const;
-					qreal getLayer() const;
-			};
-			Entity( quint16 _x, quint16 _y, qint16 _z );
-			virtual ~Entity();
-			const Position& position() const;
-			Position& position();
-		private:
-			Position mPosition;
+			Entity( QPoint _position = QPoint(0,0), qint16 _z = 0, qreal _layerModifier = 0.0f );
+			quint32 getX() const;
+			quint32 getY() const;
+			qint16 getZ() const;
+			void setX( quint32 _x );
+			void setY( quint32 _y );
+			void setZ( qint16 _z );
+			void setLayerModifier( qreal _layerModifier );
+		protected:
+			void updatePosition();
+			void updateZValue();
+			qreal calcZLayer() const;
+			QPointF toScenePos() const;
+			QPoint mPosition;
+			qint16 mZ;
+			qreal mLayerModifier;
 	};
 
-	inline Entity::Position::Position()
-	: mX(0),
-	  mY(0),
-	  mZ(0),
-	  mLayerModifier(0) {
-	}
-
-	inline Entity::Position::Position(quint16 _x, quint16 _y, qint16 _z)
-	: mX(_x),
-	  mY(_y),
-	  mZ(_z),
-	  mLayerModifier(0) {
-	}
-
-	inline QPointF Entity::Position::toScenePos() const {
-		return QPointF( 22.0f*(mX-mY), 22.0f*(mX+mY)-4.0f*mZ );
-	}
-
-	inline qreal Entity::Position::getLayer() const {
-		return mZ + mX/6144.0f + mY/4096.0f;
-	}
-
-	inline Entity::Entity( quint16 _x, quint16 _y, qint16 _z )
+	inline Entity::Entity( QPoint _position, qint16 _z, qreal _layerModifier )
 	: QGraphicsPixmapItem(),
-	  mPosition(_x,_y,_z) {
-		setPos(mPosition.toScenePos());
-		setZValue(mPosition.getLayer());
-        setVisible(true);
-        setToolTip(QString("(%1|%2|%3)").arg(_x).arg(_y).arg(_z));
+	  mPosition(_position),
+	  mZ(_z),
+	  mLayerModifier(_layerModifier) {
+            updatePosition();
+            updateZValue();
+            setVisible(true);
+            setToolTip(QString("(%1|%2|%3)").arg(mPosition.x()).arg(mPosition.y()).arg(mZ));
 	}
 
-	inline Entity::~Entity() {
+	inline quint32 Entity::getX() const {
+		return mPosition.x();
 	}
 
-	inline const Entity::Position& Entity::position() const {
-		return mPosition;
+	inline quint32 Entity::getY() const {
+		return mPosition.y();
 	}
 
-	inline Entity::Position& Entity::position() {
-		return mPosition;
+	inline qint16 Entity::getZ() const {
+		return mZ;
+	}
+
+	inline void Entity::setX( quint32 _x ) {
+		mPosition.setX(_x);
+		updatePosition();
+	}
+
+	inline void Entity::setY( quint32 _y ) {
+		mPosition.setY(_y);
+		updatePosition();
+	}
+
+	inline void Entity::setZ( qint16 _z ) {
+		mZ = _z;
+		updatePosition();
+		updateZValue();
+	}
+
+	inline void Entity::setLayerModifier( qreal _layerModifier ) {
+		mLayerModifier = _layerModifier;
+		updateZValue();
+	}
+
+	inline void Entity::updatePosition() {
+		setPos(toScenePos());
+	}
+
+	inline void Entity::updateZValue() {
+		setZValue(calcZLayer());
+	}
+
+	inline QPointF Entity::toScenePos() const {
+		return QPointF( 22.0f*(mPosition.x()-mPosition.y()),
+				22.0f*(mPosition.manhattanLength())-4.0f*mZ );
+	}
+
+	inline qreal Entity::calcZLayer() const {
+		return qreal(mZ) +
+				qreal(mPosition.x())*4.0f +
+				qreal(mPosition.y())*4.0f +
+				mLayerModifier;
+		// TODO make it more flexible by exchanging const values
 	}
 }
 

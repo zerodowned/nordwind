@@ -1,45 +1,45 @@
 #include "game/Scene.hpp"
 #include "game/MapEntity.hpp"
+#include "game/StaticEntity.hpp"
 
 using namespace game;
 
-Scene::Scene( resource::Facet _facet, QObject* _parent)
+Scene::Scene( QPoint _center, QSize _view, resource::Facet _facet, QObject* _parent )
 : QGraphicsScene(_parent),
   mFacet(_facet) {
-	for(quint8 x = 0; x < 8; x ++ ) {
-		for(quint8 y = 0; y < 8; y ++ ) {
-			QSharedPointer<Scene::Block> block( new Scene::Block( mFacet->getBlock(QPoint(x,y))) );
-			block->load(this);
-			mBlocks.push_back( block );
-		}
+    setItemIndexMethod(QGraphicsScene::NoIndex);
+    QPoint offset(qMax((_center.x()-(_view.width()>>1))>>3,0),
+                                  qMax((_center.y()-(_view.height()>>1))>>3,0));
+        for(quint16 y = 0; y<(_view.height()>>3); y++ ) {
+            for(quint16 x = 0; x <(_view.width()>>3); x++ ) {
+                QPoint point = offset + QPoint(x,y);
+                QSharedPointer<resource::Facets::Block> block( mFacet->getBlock(point) );
+                mBlocks[point] = new Scene::Block( this, block, this );
+            }
 	}
+//        setItemIndexMethod(QGraphicsScene::BspTreeIndex);
 }
 
-Scene::~Scene() {
-}
-
-Scene::Block::Block( QSharedPointer<resource::Facets::Block> _rawBlock )
-: mRawBlock(_rawBlock) {
-	mTiles.resize(8);
-	foreach( QVector< QList< QSharedPointer<QGraphicsItem> > > vec, mTiles ) {
-		vec.resize(8);    
+Scene::Block::Block( QPointer<Scene> _scene, const QSharedPointer<resource::Facets::Block>& _rawBlock, QObject* _parent )
+: mScene(_scene) {
+        quint8 i = 0;
+        foreach( resource::Facets::MapTile mapTile, _rawBlock->getMapTiles() ) {
+                QPoint point(i%8,i/8);
+                QGraphicsItem* item = new MapEntity(_rawBlock->getOffset(),QPoint(i%8,i/8),mapTile);
+                _scene->addItem( item );
+                mTiles.insert( point, item );
+                i++;
+        }
+	foreach( resource::Facets::StaticTile staticTile, _rawBlock->getStaticTiles() ) {
+		QGraphicsItem* item = new StaticEntity(_rawBlock->getOffset(),staticTile);
+		_scene->addItem( item );
+		mTiles.insert( QPoint(staticTile.mXOffset,staticTile.mYOffset), item );
 	}
 }
 
 Scene::Block::~Block() {
-}
-
-void Scene::Block::load( QGraphicsScene* _scene ) {
-	Q_ASSERT(_scene!=NULL);
-        mTiles.resize(8);
-        for( quint8 x = 0; x < 8; x++ ) {
-            mTiles[x].resize(8);
-            for( quint8 y = 0; y < 8; y++ ) {
-                QList< QSharedPointer<QGraphicsItem> > list;
-                QGraphicsItem* tmp = new MapEntity(mRawBlock->getOffset(),x,y,mRawBlock->first[y*8+x]);
-                list.push_back( QSharedPointer<QGraphicsItem>( tmp  ) );
-                _scene->addItem( tmp );
-                mTiles[x][y] = list;
-            }
-        }
+    foreach( QGraphicsItem* item, mTiles ) {
+        if(item)
+            delete item;
+    }
 }

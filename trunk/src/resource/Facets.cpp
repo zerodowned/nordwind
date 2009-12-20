@@ -1,13 +1,13 @@
 #include "resource/Facets.hpp"
-#include "resource/Cache.hpp"
 #include <qfile.h>
 
 using namespace resource;
 
-Facets::Entry::Entry(QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent )
+Facets::Entry::Entry(QString _name, QString _mapFile, QSize _dimension, QString _indexFile, QString _dataFile, QObject* _parent, QSize _blockSize )
 : IndexFile(_indexFile, _dataFile, _parent),
   mName(_name),
-  mDimension(_dimension) {
+  mSize(_dimension),
+  mBlockSize(_blockSize) {
 	mMapStream.setDevice( new QFile(_mapFile, this) );
 	Q_ASSERT_X(mMapStream.device()->open(QIODevice::ReadOnly),__PRETTY_FUNCTION__,_mapFile.toAscii().constData());
 	mMapStream.setByteOrder(QDataStream::LittleEndian);
@@ -18,7 +18,7 @@ Facets::Entry::~Entry() {
 
 QSharedPointer<Facets::Block> Facets::Entry::getBlock( const QPoint& _blockPos ) {
 	ID id = convertBlockPosToID(_blockPos);
-	return QSharedPointer<Block>( new Block(QPoint(_blockPos.x()*mBlockSize.width(),_blockPos.y()*mBlockSize.height()),
+	return QSharedPointer<Facets::Block>( new Block(QPoint(_blockPos.x()*mBlockSize.width(),_blockPos.y()*mBlockSize.height()),
 											decodeMap( getMapData(id) ),
 											decodeStatic( getData(id) )));
 }
@@ -46,13 +46,15 @@ Facets::MapTiles Facets::Entry::decodeMap( QByteArray _data ) {
 Facets::StaticTiles Facets::Entry::decodeStatic( QByteArray _data ) {
 	QDataStream stream(_data);
 	stream.setByteOrder(QDataStream::LittleEndian);
-	StaticTiles result( _data.size()/7 );
-	foreach( StaticTile staticTile, result ) {
-		stream >> staticTile.mID
-			   >> staticTile.mXOffset
-			   >> staticTile.mYOffset
-			   >> staticTile.mZ
-			   >> staticTile.mHueID;
+        StaticTiles result;
+        while(!stream.atEnd()) {
+            StaticTile staticTile;
+            stream >> staticTile.mID
+                       >> staticTile.mXOffset
+                       >> staticTile.mYOffset
+                       >> staticTile.mZ
+                       >> staticTile.mHueID;
+            result.push_back(staticTile);
 	}
 	return result;
 }

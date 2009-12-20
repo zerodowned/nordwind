@@ -5,7 +5,8 @@
  *      Author: idstein
  */
 #include "resource/Animations.hpp"
-#include "resource/Cache.hpp"
+#include "core/Resources.hpp"
+#include "Client.hpp"
 #include <qfile.h>
 #include <qregexp.h>
 #include <qstringlist.h>
@@ -13,37 +14,6 @@
 #include <qdebug.h>
 
 using namespace resource;
-
-Animations::Sequence::Sequence( Action _action, Direction _direction, QVector<Frame> _frames )
-: mAction(_action),
-  mDirection(_direction),
-  mFrames(_frames) {
-}
-
-Animations::Sequence::Sequence( const Animations::Sequence& _other )
-: mAction(_other.mAction),
-  mDirection(_other.mDirection),
-  mFrames(_other.mFrames) {
-}
-
-Animations::Sequence::~Sequence() {
-}
-
-Animations::Sequence Animations::Entry::getSequence(Action _action, Direction _direction) {
-	if(!mActions.contains(_action)&&!mActions[_action].contains(_direction))
-		mLoader.data()->loadSequence(this, _action, _direction);
-	return mActions[_action][_direction];
-}
-
-Animations::Entry::Entry( QWeakPointer<resource::Animations> _loader, Body _body, Hue _hue)
-: Object( Object::Animations, QByteArray::number(_body) + QByteArray::number(_hue->getID())),
-  mBody(_body),
-  mHue(_hue),
-  mLoader(_loader) {
-}
-
-Animations::Entry::~Entry() {
-}
 
 //IndexFile& Animations::getAnimFile(Body& _body) const {
 //	if(!mFileMapping.contains( _body ))
@@ -77,9 +47,6 @@ Animations::Animations(QString _indexFile, QString _dataFile, QObject* _parent )
 //		200 animals � 65 actions
 //		200 monsters � 110 actions
 //		x equipement ``a 175 actions
-}
-
-Animations::~Animations() {
 }
 
 Animations& Animations::loadBodyDef( QString _fileName ) {
@@ -212,29 +179,18 @@ Animations& Animations::loadBodyDef( QString _fileName ) {
 //	}
 //}
 
-
-QSharedPointer<Animations::Entry> Animations::getAnimation(Body _body, Action _action, Direction _direction, Hue _hue) {
-	getFallback(_body,_action,_direction,_hue);
-	QByteArray key = QByteArray::number(Object::Animations) + QByteArray::number(_body) + QByteArray::number(_hue->getID());
-	QSharedPointer<Animations::Entry> result = Cache::instance().lookup<Animations::Entry>( key );
-	if(result.isNull()) {
-		result = Cache::instance().manage<Animations::Entry>( new Animations::Entry( QSharedPointer<Animations>(this), _body, _hue ) );
-	}
-	result->getSequence(_action,_direction);
-	return result;
-}
-
-Animations& Animations::loadSequence( Animations::Entry* _animation, Action _action, Direction _direction ) {
-	QByteArray data = getData( calculateID(_animation->getBody(), _action, _direction) );
-	if(!data.isEmpty()) {
-		_animation->addSequence( decode(data, _action, _direction, _animation->getHue() ) );
-	}
+Animations& Animations::getSequence( Animation* _animation, Action _action, Direction _direction ) {
+	Body body = _animation->mGID.mID;
+	Hue hue = _animation->mGID.mHue;
+	getFallback(body,_action,_direction,hue);
+	QByteArray data = getData( calculateID(body, _action, _direction) );
+	_animation->addSequence(_action,_direction,(!data.isEmpty()) ? decode(data,_action,_direction,hue) : Sequence() );
 	return *this;
 }
 
 Animations& Animations::getFallback( Body& _body, Action& _action, Direction& _direction, Hue&_hue ) {
 	if(mFallback.contains(_body)) {
-		// _hue = mFallback[_body].second TODO load Hue here! Need singleton for Resource->hues
+		_hue = Client::getInstance()->mResources->hues()->getHue( mFallback[_body].second, _hue->isPartialHue() );
 		_body = mFallback[_body].first;
 	}
 	return *this;
@@ -255,7 +211,7 @@ ID Animations::calculateID(Body _body, Action _action, Direction _direction) {
 	return result;
 }
 
-Animations::Sequence Animations::decode( QByteArray _data, Action _action, Direction _direction, QSharedPointer<Hues::Entry> _hue ) {
+Sequence Animations::decode(QByteArray _data,Action _action,Direction _direction,Hue _hue ) {
 	QDataStream stream(_data);
 	stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -271,23 +227,23 @@ Animations::Sequence Animations::decode( QByteArray _data, Action _action, Direc
 	QVector<quint32> offsetTable( frameCount );
 	stream.readRawData( (char*)offsetTable.data(), sizeof(quint32)*frameCount );
 
-	QVector<Frame> frames;
+	Sequence sequence;
 	foreach(quint32 offset, offsetTable) {
 		stream.device()->seek(offset);
-		frames.push_back( decodeFrame( stream, _direction, hueTable) );
+		sequence.push_back( decodeFrame(stream,_direction,hueTable) );
 	}
-	return Sequence( _action, _direction, frames );
+	return sequence;
 }
 
-Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVector<Colour> _hueTable ) {
+Frame Animations::decodeFrame( QDataStream& _stream, Direction _direction, QVector<Colour> _hueTable ) {
 	qint16 centerX, centerY;
 	_stream >> centerX >> centerY;
 	Center center( centerX, centerY );
 
 	quint16 width, height;
 	_stream >> width >> height;
-	QImage image( width, height, QImage::Format_ARGB32);
-	image.fill(0x00000000);
+	QImage image( width, height, QImage::Format_ARGB32_Premultiplied);
+	image.fill(0);
 
 	if( height != 0 && width != 0 ) {
 		// Start reading the frame runs
@@ -318,7 +274,7 @@ Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _dire
 			qint32 x = centerX + xoffset;
 			if(mDirectionFlip[_direction]) {
 				x = width - x;
-			};
+			}
 			for (quint16 i = 0; i < length; i++, x++) {
 				quint8 pixel;
 				_stream >> pixel;
@@ -326,5 +282,5 @@ Animations::Frame Animations::decodeFrame( QDataStream& _stream, Direction _dire
 			}
 		} while (true);
 	}
-	return Frame( center, Image( new QPixmap(QPixmap::fromImage(image)) ));
+	return Frame(center,QPixmap::fromImage(image));
 }

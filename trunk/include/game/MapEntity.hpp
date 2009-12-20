@@ -9,21 +9,20 @@
 
 #include "Entity.hpp"
 #include "../core/Resources.hpp"
+#include "../resource/Facets.hpp"
 
 namespace game {
+
 	class MapEntity : public Entity {
 		public:
-			MapEntity( QPoint _offset, quint8 _x, quint8 _y, resource::Facets::MapTile& _data );
-			virtual ~MapEntity();
+			MapEntity( QPoint _offset, QPoint _pos, resource::Facets::MapTile& _data );
 			void paint( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0 );
 		private:
 //			QSharedPointer<MapEntity> mSouth;
 //			QSharedPointer<MapEntity> mEast;
 //			QSharedPointer<MapEntity> mDown;
 			resource::Facets::MapTile& mData;
-			resource::Art mArt;
-			resource::LandInfo mInfo;
-			resource::Texture mTexture;
+			QSharedPointer<resource::Land> mLand;
 	};
 }
 

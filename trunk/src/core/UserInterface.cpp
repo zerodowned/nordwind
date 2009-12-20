@@ -13,7 +13,6 @@ UserInterfaces::UserInterfaces()
 	QMdiArea* area = new QMdiArea(this);
 	area->setBackground( Qt::black );
 	setCentralWidget( area );
-        addUI( new game::View(this) );
 	show();
 }
 

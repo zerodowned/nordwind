@@ -10,17 +10,28 @@
 
 #include "Typedefs.hpp"
 
+inline quint8 red( Colour16 _colour16 ) {
+	return ((_colour16 >> 10) & 0x1F);
+}
 
 inline quint8 qRed( Colour16 _colour16 ) {
-	return (_colour16 >> 7) & 0xF8;
+	return red(_colour16) * 8;
+}
+
+inline quint8 green( Colour16 _colour16 ) {
+	return ((_colour16 >> 5) & 0x1F);
 }
 
 inline quint8 qGreen( Colour16 _colour16 ) {
-	return (_colour16 >> 2) & 0xF8;
+	return green(_colour16) * 8;
+}
+
+inline quint8 blue( Colour16 _colour16 ) {
+	return (_colour16 & 0x1F);
 }
 
 inline quint8 qBlue( Colour16 _colour16 ) {
-	return (_colour16 <<3) & 0xF8;
+	return blue(_colour16) * 8;
 }
 inline QRgb qRgb( Colour16 _colour16 ) {
 	return qRgb( qRed(_colour16), qGreen(_colour16), qBlue(_colour16) );

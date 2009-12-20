@@ -24,7 +24,10 @@ bool Client::load() {
 	QSettings settings( "config.ini", QSettings::IniFormat );
 	mResources = new resource::Resources(settings,this);
 	mUserInterfaces = new core::UserInterfaces();
-	game::Scene* scene = new game::Scene(mResources->getFacet("Siebenwind"),this);
+	QPoint offset = settings.value( "offset", QPoint(0,0) ).toPoint();
+	QSize size = settings.value("size", QSize(32,32)).toSize();
+        game::Scene* scene = new game::Scene(offset,size,mResources->facets()->getFacet("Siebenwind"),this);
+
 	game::View* view = new game::View(mUserInterfaces);
 	view->setScene(scene);
         mUserInterfaces->addUI( view );

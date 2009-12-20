@@ -27,6 +27,7 @@ namespace resource {
 			};
 			IndexFile( QString _indexFile, QString _dataFile, QObject* _parent );
 			virtual ~IndexFile();
+			QHash< ID, Entry> getEntries() const;
 		protected:
 			QByteArray getData( ID _id );
 			QHash< ID, Entry > mEntries;
@@ -46,6 +47,10 @@ namespace resource {
 	inline quint16 IndexFile::Entry::getHeight() const {
 		return mExtra & 0xFF;
 	}
+
+        inline QHash< ID, IndexFile::Entry> IndexFile::getEntries() const {
+            return mEntries;
+        }
 
 }  // namespace resource
 #endif /* OSIINDEXFILE_HPP_ */
