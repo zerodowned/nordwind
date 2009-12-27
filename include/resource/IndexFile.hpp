@@ -9,7 +9,6 @@
 #define INDEXFILE_HPP_
 
 #include <qobject.h>
-#include <qhash.h>
 #include <qdatastream.h>
 #include "../util/Typedefs.hpp"
 

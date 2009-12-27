@@ -16,7 +16,11 @@ namespace resource {
 			GID( ID _id, Hue _hue );
 			GID( const GID& _o );
 			bool operator==( const GID& _o ) const;
+			ID getID() const;
+			Hue getHue() const;
+			GID& setHue(Hue _newHue);
 			operator QString() const;
+		private:
 			ID mID;
 			Hue mHue;
 	};
@@ -38,7 +42,20 @@ namespace resource {
 	}
 
 	inline GID::operator QString() const {
-		return QString("ID%1HUE%2").arg(mID).arg(mHue->getID());
+		return QString("%1[%2]").arg(mID,0,16).arg(*mHue);
+	}
+
+	inline ID GID::getID() const {
+		return mID;
+	}
+
+	inline Hue GID::getHue() const {
+		return mHue;
+	}
+
+	inline GID& GID::setHue(Hue _newHue) {
+		mHue = _newHue;
+		return *this;
 	}
 }
 

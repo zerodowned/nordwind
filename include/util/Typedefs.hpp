@@ -9,6 +9,7 @@
 #define TYPEDEFS_HPP_
 
 #include <qglobal.h>
+#include <qhash.h>
 #include <qpair.h>
 #include <qpixmap.h>
 #include <qrgb.h>
@@ -36,6 +37,16 @@
 	typedef QVector<Frame> Sequence;
 	typedef QHash<Direction, Sequence> Directions;
 	typedef QHash<Action, Directions> Actions;
+
+//	inline uint qHash( QPoint _p ) {
+//		return qHash<QPair<int,int> >( QPair<int,int>(_p.x(),_p.y()) );
+//	}
+
+	inline bool operator<(const QPoint& _p1, const QPoint& _p2) {
+		return ( _p1.x()<_p2.x() ||
+				 (_p1.x()==_p2.x()&&_p1.y()<_p2.y()) )
+				 ? true : false;
+	}
 
 
 #endif /* TYPEDEFS_H_ */

@@ -27,6 +27,7 @@ namespace resource {
 					QString getName() const;
 					bool isPartialHue() const;
 					virtual Colour mapToHue(Colour16 _colour16) const;
+					operator QString() const;
 				protected:
 					QSharedPointer<RawHue> mRawHue;
 			};
@@ -84,6 +85,10 @@ namespace resource {
 
 	inline bool Hues::Entry::isPartialHue() const {
 		return (dynamic_cast<const Hues::PartialHue*>(this)!=NULL) ? true : false;
+	}
+
+	inline Hues::Entry::operator QString() const {
+		return QString("%1(%2)").arg(mRawHue->mName).arg(mRawHue->mID,0,16);
 	}
 
 	inline Hues::PartialHue::PartialHue( QSharedPointer<Hues::RawHue> _data )

@@ -179,18 +179,15 @@ Animations& Animations::loadBodyDef( QString _fileName ) {
 //	}
 //}
 
-Animations& Animations::getSequence( Animation* _animation, Action _action, Direction _direction ) {
-	Body body = _animation->mGID.mID;
-	Hue hue = _animation->mGID.mHue;
-	getFallback(body,_action,_direction,hue);
-	QByteArray data = getData( calculateID(body, _action, _direction) );
-	_animation->addSequence(_action,_direction,(!data.isEmpty()) ? decode(data,_action,_direction,hue) : Sequence() );
-	return *this;
+Sequence Animations::getSequence( Body _body, Hue _hue, Action _action, Direction _direction ) {
+	getFallback(_body,_action,_direction,_hue);
+	QByteArray data = getData( calculateID(_body, _action, _direction) );
+	return !data.isEmpty() ? decode(data,_action,_direction,_hue) : Sequence();
 }
 
 Animations& Animations::getFallback( Body& _body, Action& _action, Direction& _direction, Hue&_hue ) {
 	if(mFallback.contains(_body)) {
-		_hue = Client::getInstance()->mResources->hues()->getHue( mFallback[_body].second, _hue->isPartialHue() );
+		_hue = Client::getInstance()->resources()->hues()->getHue( mFallback[_body].second, _hue->isPartialHue() );
 		_body = mFallback[_body].first;
 	}
 	return *this;

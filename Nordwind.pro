@@ -2,7 +2,7 @@
 # Project created by QtCreator 2009-12-15T12:36:48
 # -------------------------------------------------
 # CONFIG = windows warn_on qt debug
-QT += network
+QT += network script
 TARGET = client
 TEMPLATE = app
 VERSION = 0.0.1
@@ -12,8 +12,10 @@ MOC_DIR = ./build
 OBJECTS_DIR = ./build
 UI_DIR = ./build
 INCLUDEPATH += include/
-SOURCES += src/game/StaticEntity.cpp \
-    src/game/MapEntity.cpp \
+SOURCES += src/game/Mobile.cpp \
+    src/game/Entity.cpp \
+    src/game/Static.cpp \
+    src/game/Map.cpp \
     src/core/Resources.cpp \
     src/core/UserInterface.cpp \
     src/game/Scene.cpp \
@@ -28,9 +30,17 @@ SOURCES += src/game/StaticEntity.cpp \
     src/resource/Facets.cpp \
     src/resource/Arts.cpp \
     src/resource/Animations.cpp
-HEADERS += include/resource/GID.hpp \
-    include/game/StaticEntity.hpp \
-    include/game/MapEntity.hpp \
+HEADERS += include/core/Console.h \
+    include/game/Coordinate.hpp \
+    include/core/Cursor.hpp \
+    include/network/Packet.hpp \
+    include/network/Socket.hpp \
+    include/game/Map.hpp \
+    include/game/Static.hpp \
+    include/game/Dynamic.hpp \
+    include/game/Character.hpp \
+    include/game/Mobile.hpp \
+    include/resource/GID.hpp \
     include/game/Entity.hpp \
     include/core/Resources.hpp \
     include/core/UserInterface.hpp \

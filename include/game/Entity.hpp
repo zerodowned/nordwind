@@ -9,69 +9,50 @@
 #define ENTITY_HPP_
 
 #include <qgraphicsitem.h>
-#include <qvector3d.h>
+#include "Coordinate.hpp"
 
 namespace game {
 	class Entity : public QGraphicsPixmapItem {
 		public:
-			Entity( QVector3D _pos = QVector3D(0.0f,0.0f,0.0f), qreal _layerModifier = 0.0f );
-			QVector3D position() const;
-			Entity& setPosition( QVector3D _position );
-			Entity& setLayerModifier( qreal _layerModifier );
+			Entity( const Coordinate& _position, qreal _layer = 0.0f);
+			qreal getLayer() const;
+			Entity& setLayer(qreal _layer);
+			const Coordinate& getPosition() const;
+			Entity& setPosition( const Coordinate& _position );
 		protected:
-			Entity& updatePosition();
-			Entity& updateZValue();
-			qreal calcZLayer() const;
-			QPointF toScenePos() const;
-			QVector3D mPosition;
-			qreal mLayerModifier;
+			QVariant itemChange(GraphicsItemChange _change, const QVariant & _value);
+//			void hoverEnterEvent( QGraphicsSceneHoverEvent * event );
+//			void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event );
+		private:
+			Coordinate mPosition;
+			qreal mLayer;
 	};
 
-	inline Entity::Entity( QVector3D _pos, qreal _layerModifier )
-	: QGraphicsPixmapItem(),
-	  mPosition(_pos),
-	  mLayerModifier(_layerModifier) {
-            updatePosition();
-            updateZValue();
-            setVisible(true);
-            setToolTip(QString("(%1|%2|%3)").arg(mPosition.x()).arg(mPosition.y()).arg(mPosition.z()));
+	inline qreal Entity::getLayer() const {
+		return mLayer;
 	}
 
-	inline QVector3D Entity::position() const {
-		return mPosition;
-	}
-
-	inline Entity& Entity::setPosition( QVector3D _pos ) {
-		mPosition = _pos;
-		return updatePosition();
-	}
-
-	inline Entity& Entity::setLayerModifier( qreal _layerModifier ) {
-		mLayerModifier = _layerModifier;
-		return updatePosition();
-	}
-
-	inline Entity& Entity::updatePosition() {
-		setPos(toScenePos());
-		return updateZValue();
-	}
-
-	inline Entity& Entity::updateZValue() {
-		setZValue(calcZLayer());
+	inline Entity& Entity::setLayer(qreal _layer) {
+		mLayer = _layer;
 		return *this;
 	}
 
-	inline QPointF Entity::toScenePos() const {
-		return QPointF( 22.0f*(mPosition.x()-mPosition.y()),
-				22.0f*(mPosition.x()+mPosition.y())-4.0f*mPosition.z() );
+	inline const Coordinate& Entity::getPosition() const {
+			return mPosition;
 	}
 
-	inline qreal Entity::calcZLayer() const {
-		return mPosition.z() +
-				mPosition.x()*4.0f +
-				mPosition.y()*4.0f +
-				mLayerModifier;
+	inline Entity& Entity::setPosition( const Coordinate& _position) {
+		mPosition = _position;
+		return *this;
 	}
+
+//	inline void Entity::hoverEnterEvent(QGraphicsSceneHoverEvent* _event) {
+//		graphicsEffect()->setEnabled(true);
+//	}
+//
+//	inline void Entity::hoverLeaveEvent(QGraphicsSceneHoverEvent* _event) {
+//		graphicsEffect()->setEnabled(false);
+//	}
 }
 
 #endif /* ENTITY_HPP_ */

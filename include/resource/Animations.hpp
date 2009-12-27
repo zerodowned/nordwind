@@ -14,8 +14,6 @@
 #include <qmap.h>
 
 namespace resource {
-
-	class Animation;
 	class Animations: public IndexFile {
 	public:
 		enum Type {
@@ -24,7 +22,7 @@ namespace resource {
 		Animations(QString _indexFile, QString _dataFile,
 				QObject* _parent);
 		Animations& loadBodyDef(QString _fileName);
-		Animations& getSequence(Animation* _animation, Action _action, Direction _direction);
+		Sequence getSequence(Body _id, Hue _hue, Action _action, Direction _direction);
 		private:
 			//Animations& loadBodyConvDev(QString _fileName);
 			//Animations& loadMobTypesTxt(QString _fileName);

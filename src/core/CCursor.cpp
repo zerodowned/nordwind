@@ -6,15 +6,15 @@
 
 using namespace gui;
 
-CCursor::CCursor() {
+Cursor::Cursor() {
 	load();
 }
 
-CCursor::~CCursor() {
+Cursor::~Cursor() {
 	unload();
 }
 
-bool CCursor::load() {
+bool Cursor::load() {
 	const quint32 normalCursorOffset = 0x206A;
 	const quint32 warmodeCursorOffset = 0x2053;
 	
@@ -54,7 +54,7 @@ bool CCursor::load() {
 	}
 }
 
-bool CCursor::unload() {
+bool Cursor::unload() {
 	foreach( QCursor* cur, m_cursors ) {
 		if(cur)
 			delete cur;
@@ -68,11 +68,11 @@ bool CCursor::unload() {
 	return true;
 }
 
-bool CCursor::reload() {
+bool Cursor::reload() {
 	return (unload() &&	load());
 }
 
-QCursor& CCursor::getCursor( eCursorType _cursor, bool _warmode ) {
+QCursor& Cursor::getCursor( eCursorType _cursor, bool _warmode ) {
 	QCursor* res = NULL;
 	if(_warmode) {
 		res = m_cursorsWar[_cursor];
