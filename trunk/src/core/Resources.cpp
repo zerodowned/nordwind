@@ -4,15 +4,15 @@
 
 using namespace resource;
 
-Sequence Animation::getSequence( Action _action, Direction _direction ) {
+Sequence Resources::Animation::getSequence( Action _action, Direction _direction ) {
 	if(!isAvailable(_action,_direction))
-		Client::getInstance()->mResources->animations()->getSequence(this,_action,_direction);
+		mActions[_action][_direction] = Client::getInstance()->resources()->animations()->getSequence( getBody(), getHue(),_action,_direction);
 	return mActions[_action][_direction];
 }
 
 template<typename T>
 static void cache( T* _cache ) {
-	Client::getInstance()->mResources->moveToCache(_cache);
+	Client::getInstance()->resources()->moveToCache(_cache);
 }
 
 Resources::Resources( QSettings& _settings, QObject* _parent )
@@ -59,7 +59,7 @@ Resources::Resources( QSettings& _settings, QObject* _parent )
 	_settings.endGroup();
 }
 
-QSharedPointer<Land> Resources::getLand( ID _id, ID _hueID, bool _partialHue ) {
+Land Resources::getLand( ID _id, ID _hueID, bool _partialHue ) {
 	GID gid(_id,mHues->getHue(_hueID,_partialHue));
 	QSharedPointer<Land> result;
 	if(mLands.contains(gid)) {
@@ -69,10 +69,10 @@ QSharedPointer<Land> Resources::getLand( ID _id, ID _hueID, bool _partialHue ) {
 			result = QSharedPointer<Land>(mLandsCache.take(gid),cache<Land>);
 		} else {
 			result = QSharedPointer<Land>(new Land(gid),cache<Land>);
-			result->mGID = gid;
-			result->mArt = mArtsLoader->getArtLand(_id,gid.mHue);
-			result->mInfo = mTileData->getLandInfo(_id);
-			result->mTexture = mTexturesLoader->getEntry(_id,gid.mHue);
+			result->setArt( mArtsLoader->getArtLand(result->getID(),result->getHue()) )
+					.setInfo( mTileData->getLandInfo(result->getID()) );
+			if(result->getInfo().mTextureID!=0)
+				result->setTexture( mTexturesLoader->getEntry(result->getInfo().mTextureID,result->getHue()) );
 		}
 		if(!result.isNull())
 			mLands.insert(gid,result.toWeakRef());
@@ -85,7 +85,7 @@ void Resources::moveToCache(Land* _land) {
 		delete _land;
 }
 
-QSharedPointer<Tile> Resources::getTile( ID _id, ID _hueID, bool _partialHue ) {
+Tile Resources::getTile( ID _id, ID _hueID, bool _partialHue ) {
 	GID gid(_id,mHues->getHue(_hueID,_partialHue));
 	QSharedPointer<Tile> result;
 	if(mTiles.contains(gid)) {
@@ -95,11 +95,10 @@ QSharedPointer<Tile> Resources::getTile( ID _id, ID _hueID, bool _partialHue ) {
 			result = QSharedPointer<Tile>(mTilesCache.take(gid),cache<Tile>);
 		} else {
 			result = QSharedPointer<Tile>(new Tile(gid),cache<Tile>);
-			result->mGID = gid;
-			result->mInfo = mTileData->getTileInfo(result->mGID.mID);
-			if(result->mInfo.mFlags.testFlag(TileData::PartialHue))
-				result->mGID.mHue = mHues->getHue(_hueID,true);
-			result->mArt = mArtsLoader->getArtStatic(_id,result->mGID.mHue);
+			result->setInfo( mTileData->getTileInfo(result->getID()) );
+			if(result->getInfo().mFlags.testFlag(TileData::PartialHue))
+				result->setHue(mHues->getHue(_hueID,true));
+			result->setArt(mArtsLoader->getArtStatic(_id,result->getHue()));
 		}
 		if(!result.isNull())
 			mTiles.insert(gid,result.toWeakRef());
@@ -112,7 +111,7 @@ void Resources::moveToCache(Tile* _tile) {
 		delete _tile;
 }
 
-QSharedPointer<Animation> Resources::getAnimation( Body _body, ID _hueID, bool _partialHue ) {
+Animation Resources::getAnimation( Body _body, ID _hueID, bool _partialHue ) {
 	GID gid(_body,mHues->getHue(_hueID,_partialHue));
 	QSharedPointer<Animation> result;
 	if(mAnimations.contains(gid)) {
@@ -122,7 +121,6 @@ QSharedPointer<Animation> Resources::getAnimation( Body _body, ID _hueID, bool _
 			result = QSharedPointer<Animation>(mAnimationsCache.take(gid),cache<Animation>);
 		} else {
 			result = QSharedPointer<Animation>(new Animation(gid),cache<Animation>);
-			result->mGID = gid;
 		}
 		if(!result.isNull())
 			mAnimations.insert(gid,result.toWeakRef());

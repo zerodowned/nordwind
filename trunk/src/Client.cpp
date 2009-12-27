@@ -22,16 +22,17 @@ Client::~Client(void) {
 
 bool Client::load() {
 	QSettings settings( "config.ini", QSettings::IniFormat );
-	mResources = new resource::Resources(settings,this);
-	mUserInterfaces = new core::UserInterfaces();
+	mResources = QSharedPointer<resource::Resources>( new resource::Resources(settings,this) );
+	mUserInterfaces = QSharedPointer<core::UserInterfaces>( new core::UserInterfaces() );
 	QPoint offset = settings.value( "offset", QPoint(0,0) ).toPoint();
 	QSize size = settings.value("size", QSize(32,32)).toSize();
-        game::Scene* scene = new game::Scene(offset,size,mResources->facets()->getFacet("Siebenwind"),this);
+    game::Scene* scene = new game::Scene(mResources->facets()->getFacet("Siebenwind"),mUserInterfaces.data());
+    scene->loadMap(offset,size);
 
-	game::View* view = new game::View(mUserInterfaces);
+	game::View* view = new game::View(NULL);
 	view->setScene(scene);
-        mUserInterfaces->addUI( view );
-        view->show();
+    mUserInterfaces->addUI( view );
+    view->show();
 	return true;
 }
 

@@ -3,6 +3,7 @@
 
 #include "IndexFile.hpp"
 #include <qcache.h>
+#include <qmap.h>
 
 namespace resource {
 
@@ -19,8 +20,8 @@ namespace resource {
 				qint8 mZ;
 				quint16 mHueID;
 			};
-			typedef QVector<MapTile> MapTiles;
-			typedef QVector<StaticTile> StaticTiles;
+			typedef QMap<QPoint, MapTile> MapTiles;
+			typedef QList<StaticTile> StaticTiles;
 			class Block {
 				public:
 					Block( const QPoint& _offset, const MapTiles& _mapTiles, const StaticTiles& _staticTiles );
@@ -28,10 +29,23 @@ namespace resource {
 					QPoint getOffset() const;
 					MapTiles getMapTiles() const;
 					StaticTiles getStaticTiles() const;
+					bool isValid() const;
 				private:
 					class Private : public QSharedData {
 						public:
 							QPoint mOffset;
+							// MapCells + 1 row of south Block + first Cell of Down Block + 1 column of east Block
+							/* +----------------+-+
+							 * |				| |
+							 * |				|1|
+							 * |				|x|
+							 * |	  8 x 8		|8|
+							 * |				| |
+							 * |				| |
+							 * +----------------+-+
+							 * |	8x1			| | 1x1
+							 * +----------------+-+
+							 */
 							MapTiles mMapTiles;
 							StaticTiles mStaticTiles;
 					};
@@ -44,6 +58,7 @@ namespace resource {
 					Block getBlock( const QPoint& _blockPos );
 					bool isSameBlock( const QPoint& _posA, const QPoint& _posB ) const;
 					QSize getSize() const;
+					QSize getBlockSize() const;
 					QString getName() const;
 					ID getBlockID( QPoint _pos ) const;
 					QPoint fromCellToBlockPosition( QPoint _cell ) const;
@@ -92,6 +107,10 @@ namespace resource {
 		return mData->mStaticTiles;
 	}
 
+	inline bool Facets::Block::isValid() const {
+		return !mData->mMapTiles.isEmpty() ? true : false; // TODO add BlockSize check
+	}
+
 	inline bool Facets::Entry::isSameBlock( const QPoint& _posA, const QPoint& _posB ) const {
 		return (getBlockID(_posA)==getBlockID(_posB)) ? true : false;
 	}
@@ -110,6 +129,10 @@ namespace resource {
 
 	inline QSize Facets::Entry::getSize() const {
 		return mSize;
+	}
+
+	inline QSize Facets::Entry::getBlockSize() const {
+		return mBlockSize;
 	}
 
 	inline QString Facets::Entry::getName() const {

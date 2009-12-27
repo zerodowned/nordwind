@@ -3,6 +3,7 @@
 
 #include <qapplication.h>
 #include <qsettings.h>
+#include <qscriptengine.h>
 #include "core/Resources.hpp"
 #include "core/UserInterface.hpp"
 
@@ -16,6 +17,7 @@ class Client : public QApplication {
 		virtual ~Client();
 
 		bool load();
+		bool unload();
 
 		static Client* getInstance();
 
@@ -25,9 +27,28 @@ class Client : public QApplication {
 			MulMaster,
 			Developer
 		};
-		QPointer<core::UserInterfaces> mUserInterfaces;
-		QPointer<resource::Resources> mResources;
+
+		QSharedPointer<core::UserInterfaces> userInterfaces();
+		QSharedPointer<resource::Resources> resources();
+		QSharedPointer<QScriptEngine> scriptEngine();
+
+	private:
+		QSharedPointer<core::UserInterfaces> mUserInterfaces;
+		QSharedPointer<resource::Resources> mResources;
+		QSharedPointer<QScriptEngine> mScriptEngine;
 };
+
+inline QSharedPointer<core::UserInterfaces> Client::userInterfaces() {
+	return mUserInterfaces;
+}
+
+inline QSharedPointer<resource::Resources> Client::resources() {
+	return mResources;
+}
+
+inline QSharedPointer<QScriptEngine> Client::scriptEngine() {
+	return mScriptEngine;
+}
 
 inline Client* Client::getInstance() {
 	return qobject_cast<Client*>(qApp);

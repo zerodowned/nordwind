@@ -14,12 +14,11 @@
 
 
 namespace game {
-	class StaticEntity : public Entity {
+	class Static : public Entity {
 		public:
-			StaticEntity( QPoint _offset, resource::Facets::StaticTile& _rawData );
+			Static(Coordinate _position, ID _id, ID _hueID);
 		private:
-			resource::Facets::StaticTile mRawData;
-			QSharedPointer<resource::Tile> mTile;
+			resource::Tile mData;
 	};
 }
 
