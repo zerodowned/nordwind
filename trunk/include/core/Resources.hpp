@@ -61,7 +61,7 @@ namespace resource {
 				private:
 					Actions mActions;
 			};
-			Resources(QSettings& _settings, QObject* _parent);
+			Resources(QObject* _parent);
 
 			QSharedPointer<Land> getLand( ID _id, ID _hueID = 0, bool _partialHue = false );
 			QSharedPointer<Tile> getTile( ID _id, ID _hueID = 0, bool _partialHue = false );

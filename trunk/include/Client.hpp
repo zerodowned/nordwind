@@ -1,12 +1,17 @@
 #ifndef CLIENT_HPP_
 #define CLIENT_HPP_
 
-#include <qapplication.h>
-#include <qsettings.h>
-#include <qscriptengine.h>
-#include "core/Resources.hpp"
-#include "core/UserInterface.hpp"
+#include <QtGui/qapplication.h>
+#include <QtCore/qsettings.h>
+#include <QtScript/qscriptengine.h>
 
+namespace core {
+	class UserInterfaces;
+}
+
+namespace resource {
+	class Resources;
+}
 /** Client
  *
 */
@@ -31,8 +36,10 @@ class Client : public QApplication {
 		QSharedPointer<core::UserInterfaces> userInterfaces();
 		QSharedPointer<resource::Resources> resources();
 		QSharedPointer<QScriptEngine> scriptEngine();
-
+		const QSettings& settings() const;
+		QSettings& settings();
 	private:
+		QSettings mSettings;
 		QSharedPointer<core::UserInterfaces> mUserInterfaces;
 		QSharedPointer<resource::Resources> mResources;
 		QSharedPointer<QScriptEngine> mScriptEngine;
@@ -52,5 +59,13 @@ inline QSharedPointer<QScriptEngine> Client::scriptEngine() {
 
 inline Client* Client::getInstance() {
 	return qobject_cast<Client*>(qApp);
+}
+
+inline QSettings& Client::settings() {
+	return mSettings;
+}
+
+inline const QSettings& Client::settings() const {
+	return mSettings;
 }
 #endif

@@ -8,13 +8,13 @@
 #ifndef INDEXFILE_HPP_
 #define INDEXFILE_HPP_
 
-#include <qobject.h>
-#include <qdatastream.h>
-#include "../util/Typedefs.hpp"
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qdatastream.h>
+#include <util/Typedefs.hpp>
 
 namespace resource {
 
-	class IndexFile : public QObject {
+	class IndexFile : public QAbstractListModel {
 		public:
 			struct Entry {
 				quint32 mOffset;
@@ -23,10 +23,13 @@ namespace resource {
 				bool isValid() const;
 				quint16 getWidth() const;
 				quint16 getHeight() const;
+				operator QString() const;
 			};
 			IndexFile( QString _indexFile, QString _dataFile, QObject* _parent );
 			virtual ~IndexFile();
 			QHash< ID, Entry> getEntries() const;
+			int rowCount( const QModelIndex& _parent = QModelIndex() ) const;
+			QVariant data( const QModelIndex& _index, int _role = Qt::DisplayRole) const;
 		protected:
 			QByteArray getData( ID _id );
 			QHash< ID, Entry > mEntries;
@@ -47,9 +50,22 @@ namespace resource {
 		return mExtra & 0xFF;
 	}
 
-        inline QHash< ID, IndexFile::Entry> IndexFile::getEntries() const {
-            return mEntries;
-        }
+	inline IndexFile::Entry::operator QString() const {
+		return QString("Offset: %1 Length: %2 Extra: %3(%4|%5)")
+				.arg(mOffset,16)
+				.arg(mSize)
+				.arg(mExtra,16)
+				.arg(getWidth())
+				.arg(getHeight());
+	}
+
+	inline QHash< ID, IndexFile::Entry> IndexFile::getEntries() const {
+		return mEntries;
+	}
+
+	inline int IndexFile::rowCount( const QModelIndex& _parent ) const {
+		return !_parent.isValid() ? mEntries.count() : 0;
+	}
 
 }  // namespace resource
 #endif /* OSIINDEXFILE_HPP_ */

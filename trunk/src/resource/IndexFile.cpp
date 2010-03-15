@@ -10,7 +10,7 @@
 using namespace resource;
 
 IndexFile::IndexFile(QString _indexFile, QString _dataFile, QObject *_parent)
-: QObject(_parent) {
+: QAbstractListModel(_parent) {
 	Q_ASSERT_X( QFile::exists( _indexFile ) && QFile::exists(_dataFile),
 				__PRETTY_FUNCTION__,
 				QString("File(s) not available! Is the path correct? %1 %2").arg(_indexFile).arg(_dataFile).toAscii().constData());
@@ -45,4 +45,9 @@ QByteArray IndexFile::getData(ID _id ) {
 				__PRETTY_FUNCTION__, "Insufficient bytes to read!");
 	}
 	return result;
+}
+
+QVariant IndexFile::data( const QModelIndex& _index, int _role ) const {
+	Q_UNUSED(_role)
+	return !_index.isValid() ? QVariant() : (QString)mEntries.value(_index.row());
 }

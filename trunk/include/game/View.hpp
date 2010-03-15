@@ -1,7 +1,7 @@
 #ifndef VIEW_HPP_
 #define VIEW_HPP_
 
-#include <qgraphicsview.h>
+#include <QtGui/qgraphicsview.h>
 
 namespace game {
 	class View : public QGraphicsView {

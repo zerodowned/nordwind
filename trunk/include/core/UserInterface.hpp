@@ -1,9 +1,8 @@
 #ifndef USERINTERFACE_HPP__
 #define USERINTERFACE_HPP__
 
-#include "../util/Singleton.hpp"
-#include <qmainwindow.h>
-#include <qpointer.h>
+#include <QtGui/qmainwindow.h>
+#include <QtCore/qpointer.h>
 
 class QMdiArea;
 class QMdiSubWindow;
@@ -15,8 +14,7 @@ class QMdiSubWindow;
 	Handels UserInput/Scripts
 */
 namespace core {
-	class UserInterfaces : public QMainWindow, public Singleton<core::UserInterfaces> {
-		friend class Singleton<core::UserInterfaces>;
+	class UserInterfaces : public QMainWindow {
 		Q_OBJECT;
 		private:
 			// QMap<QString, CDialog*> m_dialogs;

@@ -8,13 +8,13 @@
 #ifndef TYPEDEFS_HPP_
 #define TYPEDEFS_HPP_
 
-#include <qglobal.h>
-#include <qhash.h>
-#include <qpair.h>
-#include <qpixmap.h>
-#include <qrgb.h>
-#include <qsharedpointer.h>
-#include <qvector.h>
+#include <QtCore/qglobal.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qpair.h>
+#include <QtGui/qpixmap.h>
+#include <QtGui/qrgb.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtCore/qvector.h>
 
 	typedef quint32 ID;
 	typedef ID Body;
