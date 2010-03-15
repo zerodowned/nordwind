@@ -1,12 +1,12 @@
-#include "Client.hpp"
-#include "core/UserInterface.hpp"
-#include "core/Resources.hpp"
-#include "game/Scene.hpp"
-#include "game/View.hpp"
-#include <qsettings.h>
+#include <Client.hpp>
+#include <core/UserInterface.hpp>
+#include <core/Resources.hpp>
+#include <game/Scene.hpp>
+#include <game/View.hpp>
 
 Client::Client( int& argc, char** argv  )
-: QApplication(argc, argv) {
+: QApplication(argc, argv),
+  mSettings("config.ini", QSettings::IniFormat) {
 	setApplicationName( QApplication::tr("Nordwind") );
 	setApplicationVersion(  QApplication::tr("Alpha") );
 	setOrganizationDomain(  QApplication::tr("idstein.info") );
@@ -21,13 +21,9 @@ Client::~Client(void) {
 }
 
 bool Client::load() {
-	QSettings settings( "config.ini", QSettings::IniFormat );
-	mResources = QSharedPointer<resource::Resources>( new resource::Resources(settings,this) );
+	mResources = QSharedPointer<resource::Resources>( new resource::Resources(this) );
 	mUserInterfaces = QSharedPointer<core::UserInterfaces>( new core::UserInterfaces() );
-	QPoint offset = settings.value( "offset", QPoint(0,0) ).toPoint();
-	QSize size = settings.value("size", QSize(32,32)).toSize();
     game::Scene* scene = new game::Scene(mResources->facets()->getFacet("Siebenwind"),mUserInterfaces.data());
-    scene->loadMap(offset,size);
 
 	game::View* view = new game::View(NULL);
 	view->setScene(scene);

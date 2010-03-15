@@ -1,9 +1,8 @@
-#include "core/UserInterface.hpp"
-//#include <QGLWidget>
-#include <qmdiarea.h>
-#include <qmdisubwindow.h>
-#include <qtextedit.h>
-#include "game/View.hpp"
+#include <core/UserInterface.hpp>
+#include <game/View.hpp>
+#include <QtGui/qmdiarea.h>
+#include <QtGui/qmdisubwindow.h>
+#include <QtGui/qtextedit.h>
 
 using namespace core;
 

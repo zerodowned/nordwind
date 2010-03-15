@@ -1,6 +1,6 @@
-#include "core/Resources.hpp"
-#include "Client.hpp"
-#include <qdir.h>
+#include <core/Resources.hpp>
+#include <Client.hpp>
+#include <QtCore/qdir.h>
 
 using namespace resource;
 
@@ -15,8 +15,9 @@ static void cache( T* _cache ) {
 	Client::getInstance()->resources()->moveToCache(_cache);
 }
 
-Resources::Resources( QSettings& _settings, QObject* _parent )
+Resources::Resources( QObject* _parent )
 : QObject(_parent) {
+	QSettings& _settings( Client::getInstance()->settings() );
 	_settings.beginGroup("resources");
 
 	QDir path( _settings.value( "path", "." ).toString() );
