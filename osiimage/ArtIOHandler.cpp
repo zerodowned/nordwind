@@ -4,52 +4,46 @@
 #include <qvariant.h>
 #include <qdebug.h>
 
-bool ArtIOHandler::canRead(QIODevice* device, QByteArray* format) {
-	quint32 flags;
-	if(device->peek((char*)(&flags),4)!=4)
-		return false;
-	*format = flags == 0xFFFF || flags == 0 ? "Tile" : "Static";
-	return true;
-}
-
-bool ArtIOHandler::canRead() const {
-	if (!canRead(q_ptr->device(), &mSubType))
-		return false;
-	q_ptr->setFormat(mSubType);
-	return true;
-}
-
 bool ArtIOHandler::read(QImage *image) {
-	qDebug() << "Constructing art";
 	QDataStream stream(q_ptr->device());
 	stream.setByteOrder(QDataStream::LittleEndian);
-	if (q_ptr->format() == "Tile")
+	if (q_ptr->format() == "map")
 		mWidth = mHeight = 44;
-	else
-		stream >> mWidth >> mHeight;
-	*image = QImage(mWidth, mHeight, QImage::Format_RGB555);
+	else {
+		stream >> mFlags; //flags
+		if(mFlags>0xFFFF||mFlags==0) {
+			mWidth = mHeight = 44;
+			q_ptr->setFormat("map");
+		} else
+			stream >> mWidth >> mHeight;
+	}
+	*image = QImage(mWidth, mHeight, QImage::Format_ARGB32_Premultiplied);
 	if (image->isNull())
 		return false;
-	if (mSubType == "Tile") {
-		QScopedArrayPointer<quint16> raw(new quint16[mWidth * mHeight]);
-		if (stream.readRawData((char*) raw.data(), mWidth * mHeight) != mWidth
-				* mHeight)
-			return false;
-		quint8 x, y;
-		quint16 coffset = 0;
-		for (y = 0; y < 22; y++)
-			for (x = 21 - y; x < (23 + y); x++, coffset++)
-				image->setPixel(x, y, raw[coffset]);
-		for (; y < 44; y++)
-			for (x = y - 22; x < (66 - y); x++, coffset++)
-				image->setPixel(x, y, raw[coffset]);
+	memset((void*)image->bits(),0,image->byteCount());
+	QRgb* d = (QRgb*)(image->bits());
+	int bytesPerLine = image->bytesPerLine();
+	quint16 colour;
+	if (q_ptr->format() == "map") {
+		for(quint8 y = 0; y < 22; y++)
+			for(quint8 x = 21-y; x<=22+y; x++) {
+				stream >> colour;
+				d[y*bytesPerLine/sizeof(QRgb)+x] = qRgb((colour>>7)&0xF8,(colour>>2)&0xF8,(colour<<3)&0xF8);
+			}
+		for(quint8 y = 22; y < mHeight; y++)
+			for(quint8 x = y-22; x<66-y; x++) {
+				stream >> colour;
+				d[y*bytesPerLine/sizeof(QRgb)+x] = qRgb((colour>>7)&0xF8,(colour>>2)&0xF8,(colour<<3)&0xF8);
+			}
 	} else {
-		QScopedArrayPointer<quint16> lookupTable(new quint16[mHeight]);
-		stream.readRawData((char*) lookupTable.data(), mHeight);
+		QVector<quint16> lookupTable(mHeight);
+		for(QVector<quint16>::iterator iter = lookupTable.begin();iter!=lookupTable.end(); iter++)
+			stream >> *iter;
 		qint64 start = stream.device()->pos();
 		for (quint16 y = 0; y < mHeight; y++) {
 			quint16 x = 0;
-			stream.device()->seek(start + (lookupTable[y] << 1));
+			if(!stream.device()->seek(start + (lookupTable[y] << 1)))
+				return false;
 			quint16 xoffset, rlength;
 			do {
 				stream >> xoffset >> rlength;
@@ -57,9 +51,8 @@ bool ArtIOHandler::read(QImage *image) {
 				if (xoffset + rlength >= 2048)
 					break;
 				for (quint16 c = rlength; c > 0; c--, x++) {
-					quint16 colour16;
-					stream >> colour16;
-					image->setPixel(x, y, colour16);
+					stream >> colour;
+					d[y*bytesPerLine/sizeof(QRgb)+x] = qRgb((colour>>7)&0xF8,(colour>>2)&0xF8,(colour<<3)&0xF8);
 				}
 			} while ((xoffset + rlength) != 0);
 		}
@@ -68,8 +61,7 @@ bool ArtIOHandler::read(QImage *image) {
 }
 
 bool ArtIOHandler::supportsOption(QImageIOHandler::ImageOption option) const {
-	return option == QImageIOHandler::SubType || option
-			== QImageIOHandler::Size || OSIImageIOHandlerPrivate::supportsOption(option);
+	return option == QImageIOHandler::Size || OSIImageIOHandlerPrivate::supportsOption(option);
 }
 
 ArtIOHandler::ArtIOHandler(OSIImageIOHandler *q) :
@@ -81,8 +73,6 @@ ArtIOHandler::~ArtIOHandler() {
 
 QVariant ArtIOHandler::option(QImageIOHandler::ImageOption option) const {
 	switch (option) {
-	case QImageIOHandler::SubType:
-		return mSubType.isNull() ? QVariant() : mSubType;
 	case QImageIOHandler::Size:
 		return mWidth == 0 && mHeight == 0 ? QVariant()
 				: QSize(mWidth, mHeight);

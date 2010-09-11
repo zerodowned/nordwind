@@ -2,21 +2,24 @@
 #include <qdatastream.h>
 #include <qimage.h>
 #include <qvariant.h>
+#include <private/qdrawhelper_p.h>
 
 bool TextureIOHandler::read(QImage *image) {
 	QDataStream stream(q_ptr->device());
 	stream.setByteOrder(QDataStream::LittleEndian);
-	if(size().isNull())
+	if(!size().isValid())
 		return false;
-	*image = QImage(size(), QImage::Format_RGB555);
+	*image = QImage(size(), QImage::Format_ARGB32_Premultiplied);
 	if (image->isNull())
 		return false;
-	QScopedArrayPointer<quint16> raw(new quint16[mIndex.mSize]);
-	quint16 width = size().width();
-	if (stream.readRawData((char*) raw.data(), mIndex.mSize<<1) != mIndex.mSize<<1)
-		return false;
-	for (quint16 i = 0; i < mIndex.mSize; i++)
-		image->setPixel(i % width, i / width, raw[i]);
+	memset((void*)image->bits(),0,image->byteCount());
+	QVector<quint16> raw(size().width()*size().height());
+	QRgb* d = (QRgb*)image->bits();
+	for(QVector<quint16>::iterator iter = raw.begin(); iter!=raw.end();iter++, d++) {
+		stream >> *iter;
+		*d = qRgb(((*iter)>>7)&0xF8,((*iter)>>2)&0xF8,((*iter)<<3)&0xF8);
+		//((*iter)<<3)|(((*iter)&0x3E0)<<3)|(*iter)&0x1F;//qrgb555(*iter);
+	}
 	return true;
 }
 
@@ -34,7 +37,7 @@ TextureIOHandler::~TextureIOHandler() {
 QVariant TextureIOHandler::option(QImageIOHandler::ImageOption option) const {
 	switch (option) {
 	case QImageIOHandler::Size:
-		return size().isNull() ? QVariant()
+		return !size().isValid() ? QVariant()
 				: size();
 	default:
 		return OSIImageIOHandlerPrivate::option(option);
@@ -42,10 +45,8 @@ QVariant TextureIOHandler::option(QImageIOHandler::ImageOption option) const {
 }
 
 QSize TextureIOHandler::size() const {
-	if(mIndex.mSize==0x2000)
-		return QSize(64,64);
-	else if(mIndex.mSize==0x8000)
+	if(mIndex.mExtra==1)
 		return QSize(128,128);
 	else
-		return QSize();
+		return QSize(64,64);
 }

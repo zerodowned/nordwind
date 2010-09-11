@@ -2,28 +2,32 @@
 #include <qdatastream.h>
 #include <qimage.h>
 #include <qvariant.h>
+#include <QtAlgorithms>
+#include <private/qdrawhelper_p.h>
 
 bool GumpIOHandler::read(QImage *image) {
 	QDataStream stream(q_ptr->device());
 	stream.setByteOrder(QDataStream::LittleEndian);
-	*image = QImage(mIndex.getWidth(), mIndex.getHeight(), QImage::Format_RGB555);
+	*image = QImage(mIndex.getWidth(), mIndex.getHeight(), QImage::Format_ARGB32_Premultiplied);
 	if (image->isNull())
 		return false;
-	QScopedArrayPointer<quint32> lookup(new quint32[mIndex.getHeight()]);
-	if (stream.readRawData((char*) lookup.data(), mIndex.getHeight() << 2) != mIndex.getHeight() << 2)
-		return false;
-	for (quint16 y = 0; y < mIndex.getHeight(); y++) {
+	image->fill(0);
+	QVector<quint32> lookup(mIndex.getHeight());
+	for(QVector<quint32>::iterator iter = lookup.begin(); iter!=lookup.end();iter++)
+		stream >> *iter;
+	QRgb* d = (QRgb*)image->bits();
+	int bytesPerLine = image->bytesPerLine();
+	for (quint16 y = 0; y < lookup.size(); y++) {
 		// seek in stream to start position in line y
 		stream.device()->seek(lookup[y] << 2);
 		for( quint16 x = 0; x < mIndex.getWidth();) {
 			quint16 colour, length;
 			stream >> colour >> length;
-			if (!colour) {
+			if (!colour)
 				x += length;
-				continue;
-			}
-			for (; length > 0 && x < mIndex.getWidth(); x++, length--)
-				image->setPixel(x, y, colour);
+			else
+				for(QRgb rgb = qrgb555(colour); length > 0 && x < mIndex.getWidth(); x++, length--)
+					d[y*bytesPerLine/sizeof(QRgb)+x] = rgb;
 		}
 	}
 	return true;

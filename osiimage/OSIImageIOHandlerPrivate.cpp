@@ -11,18 +11,19 @@
 
 OSIImageIOHandlerPrivate::OSIImageIOHandlerPrivate(OSIImageIOHandler* q) :
 	q_ptr(q) {
+	QFile* file = qobject_cast<QFile*> (q_ptr->device());
+	if (!file || !file->fileEngine() || !file->fileEngine()->supportsExtension(
+		(QAbstractFileEngine::Extension)resource::Index::IndexExtension))
+		return;
+	file->fileEngine()->extension((QAbstractFileEngine::Extension)resource::Index::IndexExtension, NULL,
+		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<resource::Index*>(&mIndex)));
 }
 
 OSIImageIOHandlerPrivate::~OSIImageIOHandlerPrivate() {
 }
 
 bool OSIImageIOHandlerPrivate::canRead() const {
-	QFile* file = qobject_cast<QFile*> (q_ptr->device());
-	if (!file || !file->fileEngine() || !file->fileEngine()->supportsExtension(
-			(QAbstractFileEngine::Extension)resource::Index::IndexExtension))
-		return false;
-	return file->fileEngine()->extension((QAbstractFileEngine::Extension)resource::Index::IndexExtension, NULL,
-			static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<resource::Index*>(&mIndex)));
+	return mIndex.isValid();
 }
 
 bool OSIImageIOHandlerPrivate::read(QImage* image) {
@@ -62,7 +63,7 @@ int OSIImageIOHandlerPrivate::nextImageDelay() const {
 QVariant OSIImageIOHandlerPrivate::option(QImageIOHandler::ImageOption option) const {
 	switch (option) {
 	case QImageIOHandler::ImageFormat:
-		return QImage::Format_RGB555;
+		return QImage::Format_ARGB32_Premultiplied;
 	default:
 		return QVariant();
 	}
