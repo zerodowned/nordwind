@@ -28,12 +28,9 @@ IndexFileHandle::IndexFileHandle(const QString& mulFile,
 		qDebug() << "Index build started";
 		QDataStream indexStream(indexFileHandle.readAll());
 		indexStream.setByteOrder(QDataStream::LittleEndian);
-		for (quint32 i = 0; i < indexStream.device()->size() / 12; i++) {
-			Index entry;
-			indexStream >> entry.mOffset >> entry.mSize >> entry.mExtra;
-			if (entry.isValid())
-				insert(i, entry);
-		}
+		resize(indexFileHandle.size()/12);
+		for (QVector<Index>::iterator iter = begin(); iter!=end(); iter++)
+			indexStream >> iter->mOffset >> iter->mSize >> iter->mExtra;
 		qDebug() << count() << " indices read.";
 	} else
 		qWarning() << indexFileHandle.errorString();

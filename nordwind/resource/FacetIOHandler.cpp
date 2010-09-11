@@ -1,6 +1,6 @@
 #include "FacetIOHandler.hpp"
 #include "IndexFileHandle.hpp"
-#include "Client.hpp"
+#include "../Client.hpp"
 #include <qdebug.h>
 
 using namespace resource;
@@ -37,8 +37,6 @@ FacetIOHandler::FacetIOHandler(const QString & name, const QString & mapFile,
 }
 
 FacetIOHandler::~FacetIOHandler() {
-	if (sFacets.remove(mName) != 1)
-		qWarning() << "Ambiguous facet name" << mName;
 }
 
 bool FacetIOHandler::open(QIODevice::OpenMode mode) {
@@ -53,7 +51,7 @@ FacetIOHandler::Maps FacetIOHandler::operator [](ID blockID) {
 	QDataStream stream(this);
 	stream.setByteOrder(QDataStream::LittleEndian);
 	int tilesNum = sBlockSize.width() * sBlockSize.height();
-	if (!seek(blockID * (4 + tilesNum * 3)) + 4)
+	if (!seek(blockID * (4 + tilesNum * 3) + 4))
 		return FacetIOHandler::Maps();
 	QVector<FacetIOHandler::Map> tmp(tilesNum);
 	for (QVector<FacetIOHandler::Map>::iterator iter = tmp.begin(); iter != tmp.end(); iter++)
@@ -66,15 +64,13 @@ FacetIOHandler::Statics FacetIOHandler::statics(ID blockID) {
 	QFile file(mStaticsFile + ":" + QString::number(blockID));
 	if (file.open(QIODevice::ReadOnly)) {
 		QDataStream stream(file.readAll());
-		stream.setByteOrder(QDataStream::LittleEndian);
-		stream.skipRawData(4); //skip header
-                qDebug() << "Size" << file.size();
-		result.resize((file.size() - 4) / 7);
+		stream.setByteOrder(QDataStream::LittleEndian);;
+		result.resize(file.size() / 7);
 		for (Statics::iterator iter = result.begin(); iter != result.end(); iter++)
 			stream >> iter->mID >> iter->mXOffset >> iter->mYOffset >> iter->mZ
 					>> iter->mHueID;
 	} else
-		qWarning() << "Unable to open" << mStaticsFile << "index" << blockID;
+		qDebug() << "Unable to open" << mStaticsFile << "index" << blockID;
 	return result;
 }
 
@@ -100,17 +96,14 @@ FacetIOHandler::Block* FacetIOHandler::block(QPoint point) {
 		// necessary for strech calculation and thereby avoid additional recursive loads
 		// QList instead of QVector due to performance concerning insert/append operations
 		FacetIOHandler::Maps east = operator[](id(point + QPoint(1, 0)));
-		int y = 0;
-		for (FacetIOHandler::Maps::iterator iter = block->mMap.begin()+sBlockSize.width();
-			iter<block->mMap.end();y++)
-			iter=block->mMap.insert(iter,east.isEmpty()?*(iter-1):east[FacetIOHandler::Block::index(QPoint(0,y))])
-							+sBlockSize.width()+1;
+		for (int y = 0; y < sBlockSize.height(); y++)
+			block->mMap.insert(FacetIOHandler::Block::index(QPoint(sBlockSize.width(),y)),
+			east.isEmpty()?block->mMap[FacetIOHandler::Block::index(QPoint(sBlockSize.width()-1,y))]:east[y*sBlockSize.width()]);
 		FacetIOHandler::Maps south = operator[](id(point + QPoint(0, 1)));
-		block->mMap.append(south.isEmpty() ? block->mMap.mid((sBlockSize.height()
-				- 1) * sBlockSize.width(), sBlockSize.width()) : south.mid(1,
-				sBlockSize.width()));
+		block->mMap += south.isEmpty() ? block->mMap.mid((sBlockSize.height()
+				- 1) * sBlockSize.width(), sBlockSize.width()) : south.mid(0,sBlockSize.width());
 		FacetIOHandler::Maps down = operator[](id(point + QPoint(1, 1)));
-		block->mMap.append(down.isEmpty() ? block->mMap.back() : down.front());
+		block->mMap += down.isEmpty() ? block->mMap.back() : down.front();
 	}
 	block->mStatics = statics(i);
 	return block;

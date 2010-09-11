@@ -11,6 +11,11 @@
 
 using namespace resource;
 
+Info::Info() 
+: mFullInfo(false),
+mGeneric(0) {
+}
+
 Info::Flags Info::flags() const {
 	return mFlags;
 }
@@ -24,7 +29,7 @@ QString Info::name() const {
 }
 
 quint8 Info::weight() const {
-	return mGeneric >> 16;
+	return mGeneric >> 8;
 }
 
 quint8 Info::quality() const {
@@ -65,36 +70,35 @@ bool Info::hasFullInfo() const {
 
 TileData::TileData(QString fileName) {
 	QFile file(fileName);
-	Q_ASSERT_X(file.open(QIODevice::ReadOnly), __PRETTY_FUNCTION__,
-			fileName.toAscii().constData());
+	if(!file.open(QIODevice::ReadOnly)){ 
+		qWarning() << "Unable to open" << fileName;	
+		return;
+	}
 	QDataStream stream(file.readAll());
 	stream.setByteOrder(QDataStream::LittleEndian);
         qDebug() << "TileData" << stream.device()->size() << "Bytes";
-        quint32 fileSize = stream.device()->size() - 512*(32*26+4);
         // 16384 land infos + bytes left / block size * 32 elements per block
         resize(16384+ ((stream.device()->size() - 512*(32*26+4)) / (32*37+4))
 			* 32);
-
-        for (quint16 i = 0; i < size(); i++) {
-		if (i % 32 == 0)
-			stream.skipRawData(4); // skip 4 byte header;
-		Info& info = const_cast<Info&>(at(i));
 		int flags;
-		stream >> flags >> info.mGeneric;
-		if (i > 0x4000) {
-			info.mFullInfo = true;
-			stream >> info.mHitpoints
-			>> info.mUnknown1 >> info.mQuantity >> info.mAnimation
-			>> info.mUnknown2 >> info.mHue >> info.mStackOffset
-			>> info.mValue >> info.mHeight;
-		} else {
-			info.mFullInfo = false;
-		}
 		char tmp[20];
+		ID i = 0;
+		for (QVector<Info>::iterator iter = begin(); iter!=end(); i++,iter++) {
+			if (i % 32 == 0)
+				stream.skipRawData(4); // skip 4 byte header;
+		stream >> flags >> iter->mGeneric;
+		if (i > 0x4000) {
+			iter->mFullInfo = true;
+			stream >> iter->mHitpoints
+			>> iter->mUnknown1 >> iter->mQuantity >> iter->mAnimation
+			>> iter->mUnknown2 >> iter->mHue >> iter->mStackOffset
+			>> iter->mValue >> iter->mHeight;
+		}
 		stream.readRawData(tmp, 20);
-		info.mFlags = Info::Flags(flags);
-		info.mName = tmp;
+		iter->mFlags = Info::Flags(flags);
+		iter->mName = QString::fromAscii(tmp,qstrlen(tmp));
 	}
+	qDebug() << size() << "Indices read.";
 }
 
 TileData::~TileData() {

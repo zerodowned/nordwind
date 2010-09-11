@@ -1,13 +1,15 @@
 #include "Scene.hpp"
 #include "Map.hpp"
 #include "Static.hpp"
-#include "resource/FacetIOHandler.hpp"
+#include "../resource/FacetIOHandler.hpp"
+#include <qdatetime.h>
 #include <qdebug.h>
 
 using namespace game;
 
 Scene::Scene(const QString& name, QObject* _parent) :
 	QGraphicsScene(_parent), mFacet(resource::FacetIOHandler::instance(name)) {
+		mBlocks.setMaxCost(512);
 }
 
 void Scene::loadMap(const QRect& rect) {
@@ -26,26 +28,26 @@ void Scene::loadMap(const QRect& rect) {
 }
 
 void Scene::constructBlock(QPoint point) {
+	QTime time;
+	time.start();
 	Block* block = new Block;
 	QScopedPointer<resource::FacetIOHandler::Block> raw(mFacet->block(point));
 	resource::FacetIOHandler::Maps mapTiles = raw->mMap;
-	QPoint p(0, 0);
-	for (resource::FacetIOHandler::Maps::iterator iter = mapTiles.begin();
-			iter!=mapTiles.end(); p.ry()++)
-		for (p.setX(0); p.x() < resource::FacetIOHandler::sBlockSize.width(); p.rx()++, iter++) {
-			QSharedPointer<Entity> map(new Map(Coordinate(
-					raw->relative(p),
-					iter->mZ),
-					iter->mID,
-					mapTiles[resource::FacetIOHandler::Block::index(p + QPoint(
-							0, 1))].mZ, // South
-					mapTiles[resource::FacetIOHandler::Block::index(p + QPoint(
-							1, 1))].mZ, // Down
-					mapTiles[resource::FacetIOHandler::Block::index(p + QPoint(
-							1, 0))].mZ)); // East
-			addItem(map.data());
-			block->insert(p, map);
-		}
+	if(!raw->mMap.isEmpty())
+		for(quint8 y = 0; y < resource::FacetIOHandler::sBlockSize.height(); y++)
+			for(quint8 x = 0; x < resource::FacetIOHandler::sBlockSize.width(); x++) {
+				QPoint p(x,y);
+				const resource::FacetIOHandler::Map& rawMap = mapTiles[raw->index(p)];
+				QSharedPointer<Entity> map(new Map(
+						raw->relative(p),
+						rawMap.mID,
+						rawMap.mZ,
+						mapTiles[raw->index(p+QPoint(0,1))].mZ, // South
+						mapTiles[raw->index(p+QPoint(1,1))].mZ, // Down
+						mapTiles[raw->index(p+QPoint(1,0))].mZ)); // East
+				addItem(map.data());
+				block->insert(p, map);
+			}
 	for (resource::FacetIOHandler::Statics::iterator iter =
 			raw->mStatics.begin(); iter != raw->mStatics.end(); iter++) {
 		QPoint p(iter->mXOffset, iter->mYOffset);

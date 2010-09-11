@@ -3,6 +3,10 @@
 #include "core/Resources.hpp"
 #include "game/Scene.hpp"
 #include "game/View.hpp"
+#include "game/Mobile.hpp"
+#include <qdatetime.h>
+#include <qdebug.h>
+#include <qpixmapcache.h>
 
 QSettings Client::sSettings("config.ini",QSettings::IniFormat);
 
@@ -17,10 +21,16 @@ Client::Client( int& argc, char** argv  )
 Client::~Client(void) {}
 
 bool Client::load() {
+	QPixmapCache::setCacheLimit(102400); // Cache to 100 MB
 	mResources.reset(new resource::Resources(this));
 	mUserInterfaces.reset(new core::UserInterfaces());
     game::Scene* scene = new game::Scene("siebenwind",mUserInterfaces.data());
-    scene->loadMap(QRect(1960,765,64,64));
+	QTime time;
+	time.start();
+	QPoint offset(1993,730);
+    scene->loadMap(QRect(offset,QSize(32,32)));
+	qDebug() << "Load done in" << time.restart() << "ms";
+	scene->addItem(new game::Mobile(offset, 20, 0x190,0,0x2));
 	game::View* view = new game::View(NULL);
 	view->setScene(scene);
     mUserInterfaces->addUI( view );

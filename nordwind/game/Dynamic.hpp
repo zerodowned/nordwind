@@ -19,7 +19,7 @@ namespace game {
 		Q_PROPERTY(Serial serial READ getSerial WRITE setSerial);
 		public:
 			Dynamic( const Coordinate& _position, Serial _serial = -1 );
-			Serial getSerial() const;
+			Serial serial() const;
 			Dynamic& setSerial( Serial _setial );
 		private:
 			Serial mSerial;
@@ -31,7 +31,7 @@ namespace game {
 	  mSerial(_serial) {
 	}
 
-	inline Serial Dynamic::getSerial() const {
+	inline Serial Dynamic::serial() const {
 		return mSerial;
 	}
 

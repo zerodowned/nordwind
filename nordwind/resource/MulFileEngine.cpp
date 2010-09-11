@@ -20,9 +20,8 @@ MulFileEngine::~MulFileEngine() {
 
 bool MulFileEngine::open(QIODevice::OpenMode mode) {
 	bool isOpen = QFSFileEngine::open(mode);
-        if (isOpen && mIndexHandle && mIndexHandle->value(mIdentifier).isValid()) {
-		isOpen = QFSFileEngine::seek(mIndexHandle->value(mIdentifier).mOffset);
-		if (!isOpen)
+	if (isOpen && mIndexHandle && !(mIndexHandle->value(mIdentifier).isValid() && QFSFileEngine::seek(mIndexHandle->value(mIdentifier).mOffset))) {
+			isOpen = false;
 			QFSFileEngine::close();
 	}
 	return isOpen;
@@ -35,6 +34,12 @@ qint64 MulFileEngine::pos() const {
 	return pos;
 }
 
+bool MulFileEngine::seek(qint64 pos) {
+	if(mIndexHandle)
+		pos += mIndexHandle->value(mIdentifier).mOffset;
+	return QFSFileEngine::seek(pos);
+}
+
 qint64 MulFileEngine::size() const {
 	if (mIndexHandle) {
 		return mIndexHandle->value(mIdentifier).mSize;
@@ -45,10 +50,21 @@ qint64 MulFileEngine::size() const {
 
 QString MulFileEngine::fileName(QAbstractFileEngine::FileName file) const {
 	QString fileName = QFSFileEngine::fileName(file);
-	if (file == QAbstractFileEngine::BaseName || file
-			== QAbstractFileEngine::AbsoluteName)
-		fileName.append(QString(":%1").arg(mIdentifier));
+	switch(file) {
+		case QAbstractFileEngine::BaseName:
+		case QAbstractFileEngine::AbsoluteName:
+		case QAbstractFileEngine::DefaultName:
+			fileName.append(QString(":%1").arg(mIdentifier));
+			break;
+		default:
+			break;
+	}
 	return fileName;
+}
+
+void MulFileEngine::setFileName( const QString & file ) {
+	QFSFileEngine::setFileName(file.section(':',0,-2));
+	mIdentifier = file.section(':',-1,-1).toUInt();
 }
 
 QAbstractFileEngine* MulFileEngineHandler::create(const QString& fileName) const {

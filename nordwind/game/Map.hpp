@@ -8,23 +8,25 @@
 #define MAPENTITY_HPP_
 
 #include "Entity.hpp"
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
+//#include <qfuturewatcher.h>
 
 namespace game {
 
 	class Map : public Entity {
 		public:
-			Map( Coordinate _position, ID _id, Z _southZ, Z _downZ, Z _eastZ );
+			Map( const QPoint& p, ID _id, Z _z, Z _southZ, Z _downZ, Z _eastZ );
 //			void paint( QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget = 0 );
 			operator QString() const;
 		protected:
-			qint16 calculateStrech( qint16 _z1, qint16 _z2 ) const;
+			qint16 calculateStrech( Z _z1, Z _z2 ) const;
 		private:
 			ID mID;
+			//QFutureWatcher<QImage>* mLoading;
 	};
 
-	inline qint16 Map::calculateStrech( qint16 _z1, qint16 _z2 ) const {
-		return (_z1-_z2)*4+22;
+	inline qint16 Map::calculateStrech( Z _z1, Z _z2 ) const {
+		return qAbs((_z1-_z2)*4+22);
 	}
 }
 

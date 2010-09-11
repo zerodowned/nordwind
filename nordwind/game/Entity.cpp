@@ -16,8 +16,12 @@ Entity::Entity( const Coordinate& _position, qreal _layer)
 	setToolTip(mPosition);
 //	setFlags(ItemIsSelectable|ItemIsMovable);
 	setPos(mPosition.toScenePoint());
-	setZValue(mPosition.toSceneZValue());
+	QGraphicsPixmapItem::setZValue(mPosition.toSceneZValue());
 	setVisible(true);
+}
+
+void Entity::setZValue ( qreal z ) {
+	QGraphicsPixmapItem::setZValue(mPosition.toSceneZValue()+z);
 }
 
 QVariant Entity::itemChange(GraphicsItemChange _change, const QVariant& _value) {

@@ -9,7 +9,7 @@
 #define STATICENTITY_HPP_
 
 #include "Entity.hpp"
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
 
 namespace game {
 	class Static : public Entity {
@@ -17,6 +17,7 @@ namespace game {
 			Static(Coordinate _position, ID id, Hue hue);
 			ID id() const;
 			Hue hue() const;
+			void setPixmap(const QPixmap &pixmap);
 		private:
 			ID mID;
 			Hue mHue;

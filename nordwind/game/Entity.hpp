@@ -19,6 +19,7 @@ namespace game {
 			Entity& setLayer(qreal _layer);
 			const Coordinate& getPosition() const;
 			Entity& setPosition( const Coordinate& _position );
+			void setZValue ( qreal z );
 		protected:
 			QVariant itemChange(GraphicsItemChange _change, const QVariant & _value);
 //			void hoverEnterEvent( QGraphicsSceneHoverEvent * event );

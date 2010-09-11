@@ -148,29 +148,22 @@ ID Mobile::id() const {
 	return result;
 }
 
-Mobile::Mobile(const Coordinate& _position, Mobile::Body body, Hue hue, Mobile::Action action, Mobile::Direction direction )
-: Dynamic(_position),
+Mobile::Mobile(const QPoint& p, Z _z, Mobile::Body body, Hue hue, Mobile::Action action, Mobile::Direction direction )
+: Dynamic(Coordinate(p,_z)),
 mBody(body),
 mAction(action),
 mDirection(direction),
 mHue(hue),
 mBase(Client::getInstance()->resources().animationFile() + ":" + QString::number(id()),"animation",this) {
+	mBase.setCacheMode(QMovie::CacheAll);
 	connect(&mBase,SIGNAL(frameChanged(int)),SLOT(onFrameChanged(int)));
-}
-
-void Mobile::paint(QPainter* painter, const QStyleOptionGraphicsItem* _option,
-		QWidget* _widget) {
-	Q_UNUSED(_option);
-	Q_UNUSED(_widget);
-	if (!mBase.isValid())
-		return;
-	if (sDirectionFlip[mDirection])
-		painter->drawImage(0, 0, mBase.currentImage().mirrored());
-	else
-		painter->drawPixmap(0,0,mBase.currentPixmap());
+	mBase.start();
 }
 
 void Mobile::onFrameChanged(int frameNumber) {
 	Q_UNUSED(frameNumber);
-	update();
+	QRect rect = mBase.frameRect();
+	setOffset(rect.topLeft()-QPoint(rect.width()-44,rect.height()-44));
+	QPixmap pixmap = sDirectionFlip[mDirection]?QPixmap::fromImage(mBase.currentImage().mirrored()):mBase.currentPixmap();
+	setPixmap(pixmap);
 }

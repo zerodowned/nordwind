@@ -1,7 +1,7 @@
 #ifndef FACETIOHANDLER_HPP__
 #define FACETIOHANDLER_HPP__
 
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
 #include <qfile.h>
 #include <qsharedpointer.h>
 #include <qhash.h>
@@ -61,7 +61,7 @@ private:
 };
 
 inline int FacetIOHandler::Block::index(const QPoint& p) {
-	return p.y()*FacetIOHandler::sBlockSize.width()+p.x();
+	return p.y()*FacetIOHandler::sBlockSize.width()+p.y()+p.x();
 }
 
 inline QPoint FacetIOHandler::Block::relative(const QPoint& p) const {
