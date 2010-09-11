@@ -8,7 +8,7 @@
 #ifndef UTIL_HPP_
 #define UTIL_HPP_
 
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
 #include <qdatastream.h>
 
 inline quint8 red( Colour16 _colour16 ) {

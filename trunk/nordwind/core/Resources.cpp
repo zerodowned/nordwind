@@ -1,7 +1,7 @@
 #include "Resources.hpp"
-#include "Client.hpp"
-#include "resource/MulFileEngine.hpp"
-#include "resource/IndexFileHandle.hpp"
+#include "../Client.hpp"
+#include "../resource/MulFileEngine.hpp"
+#include "../resource/IndexFileHandle.hpp"
 #include <qsettings.h>
 #include <qfiledialog.h>
 #include <qdir.h>
@@ -40,7 +40,7 @@ Resources::Resources( QObject* _parent )
 //	mHues.reset(new Hues(hue, this));
 //	qDebug() << QString("Hue load took aprox. %1 ms").arg(time.restart());
 
-	QString tileData = path.filePath(settings.value("tiledata","tiledata.mul").toString());
+	QString tileData = settings.value("tiledata","tiledata.mul").toString();
 	mTileData.reset(new TileData(tileData));
 	qDebug() << QString("Tiledata load took aprox. %1 ms").arg(time.restart());
 	settings.endGroup();

@@ -9,15 +9,16 @@
 #define INDEXFILEHANDLE_HPP_
 
 #include <qsharedpointer.h>
-#include <qhash.h>
+#include <qvector.h>
 #include "Index.hpp"
+#include "../Typedefs.hpp"
 
 /*
  *
  */
 namespace resource {
 
-class IndexFileHandle: public QHash<quint32, Index> {
+class IndexFileHandle: public QVector<Index> {
 public:
 	static QSharedPointer<IndexFileHandle> instance(const QString& mulFile,
 			const QString& indexFile = QString());

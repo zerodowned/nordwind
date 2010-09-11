@@ -8,7 +8,7 @@
 #ifndef TILEDATA_HPP_
 #define TILEDATA_HPP_
 
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
 #include <qvector.h>
 
 namespace resource {
@@ -52,6 +52,7 @@ public:
 		StairRight = 1 << 31
 	};
 	Q_DECLARE_FLAGS(Flags,Flag);
+	Info();
 	Flags flags() const;
 	quint16 textureID() const;
 	QString name() const;

@@ -5,7 +5,7 @@
 #include <qvector.h>
 #include <qdatastream.h>
 #include <qsharedpointer.h>
-#include "util/Utilities.hpp"
+#include "../util/Utilities.hpp"
 
 namespace resource {
 	class Hues : public QObject {

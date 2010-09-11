@@ -34,13 +34,13 @@ public:
 	};
 	typedef quint8 Action;
 	typedef ID Body;
-	Mobile( const Coordinate& _position, Body body, Hue hue, Action action = 0x4, Direction direction = Down );
+	Mobile( const QPoint& point, Z _z, Body body, Hue hue, Action action = 0x4, Direction direction = Down );
 	Body body() const;
 	Action action() const;
 	Direction direction() const;
 	Hue hue() const;
 	ID id() const;
-	void paint( QPainter* _painter, const QStyleOptionGraphicsItem* _option, QWidget* _widget = 0 );
+	//void paint( QPainter* _painter, const QStyleOptionGraphicsItem* _option, QWidget* _widget = 0 );
 public Q_SLOTS:
 	void onFrameChanged( int frameNumber );
 private:

@@ -6,7 +6,7 @@
 #include <qmap.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include "Typedefs.hpp"
+#include "../Typedefs.hpp"
 
 inline bool operator<(const QPoint& _p1, const QPoint& _p2) {
 	return (_p1.x() < _p2.x() || (_p1.x() == _p2.x() && _p1.y() < _p2.y())) ? true

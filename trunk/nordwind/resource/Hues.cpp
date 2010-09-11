@@ -6,9 +6,10 @@ using namespace resource;
 
 Hues::Hues( QString _dataFile, QObject* _parent )
     : QObject(_parent), mDefaultHue( new Hues::DefaultHue ) {
-	Q_ASSERT_X(QFile::exists(_dataFile),__PRETTY_FUNCTION__, _dataFile.toAscii().constData());
+	//Q_ASSERT_X(QFile::exists(_dataFile),__PRETTY_FUNCTION__, _dataFile.toAscii().constData());
 	mDataStream.setDevice( new QFile(_dataFile,this) );
-	Q_ASSERT_X(mDataStream.device()->open(QIODevice::ReadOnly),__PRETTY_FUNCTION__, _dataFile.toAscii().constData());
+	if(!mDataStream.device()->open(QIODevice::ReadOnly))
+		qWarning() << "Unable to open" << _dataFile;
 	mDataStream.setByteOrder(QDataStream::LittleEndian);
 	load();
 };

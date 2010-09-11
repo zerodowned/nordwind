@@ -21,8 +21,10 @@ public:
 	virtual bool open(QIODevice::OpenMode mode);
 	virtual qint64 pos() const;
 	virtual qint64 size() const;
+	virtual bool seek(qint64 pos);
 	virtual QString fileName(QAbstractFileEngine::FileName file =
 			QAbstractFileEngine::DefaultName) const;
+	void	setFileName ( const QString & file );
 	virtual bool
 			supportsExtension(QAbstractFileEngine::Extension extension) const;
 	virtual bool extension(QAbstractFileEngine::Extension extension,
