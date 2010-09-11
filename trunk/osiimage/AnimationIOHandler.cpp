@@ -1,63 +1,27 @@
 #include "AnimationIOHandler.hpp"
 #include <qimage.h>
 #include <qvariant.h>
+#include <qdebug.h>
 
 int AnimationIOHandler::sNextImageDelay = 100;
-
-inline quint8 red(quint16 _colour16) {
-	return ((_colour16 >> 10) & 0x1F);
-}
-
-inline quint8 qRed(quint16 _colour16) {
-	return red(_colour16) << 3;
-}
-
-inline quint8 green(quint16 _colour16) {
-	return ((_colour16 >> 5) & 0x1F);
-}
-
-inline quint8 qGreen(quint16 _colour16) {
-	return green(_colour16) << 3;
-}
-
-inline quint8 blue(quint16 _colour16) {
-	return (_colour16 & 0x1F);
-}
-
-inline quint8 qBlue(quint16 _colour16) {
-	return blue(_colour16) << 3;
-}
-inline QRgb qRgb(quint16 _colour16) {
-	return qRgb(qRed(_colour16), qGreen(_colour16), qBlue(_colour16));
-}
 
 AnimationIOHandler::~AnimationIOHandler() {
 }
 
 bool AnimationIOHandler::read(QImage *image) {
+	if(!q_ptr->device()->seek(0x200+mImageOffset[mCurrentImageNumber]))
+		return false;
 	QDataStream stream(q_ptr->device());
 	stream.setByteOrder(QDataStream::LittleEndian);
-	if (mImageCount == -1) {
-		QScopedArrayPointer<quint16> colorTable(new quint16[0xFF]);
-		stream.readRawData((char*)colorTable.data(), 0xFF << 1);
-		for (int i = 0; i < 0xFF; i++)
-			mColorTable[i] = qRgb(colorTable[i]);
-		stream >> mImageCount;
-		mImageOffset.resize(mImageCount);
-		stream.readRawData((char*) mImageOffset.data(), sizeof(quint32)
-				* mImageCount);
-		if(!jumpToImage(0))
-			return false;
-	}
 	qint16 centerX, centerY;
 	stream >> centerX >> centerY;
-	quint16 width, height;
+	qint16 width, height;
 	stream >> width >> height;
 	mCurrentImageRect.setRect(centerX,centerY,width,height);
-	*image = QImage(width, height, QImage::Format_Indexed8);
+	*image = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
 	if (image->isNull())
 		return false;
-	image->setColorTable(mColorTable);
+	image->fill(0);
 	// Start reading the frame runs
 	do {
 		quint32 header = 0x7FFF7FFF;
@@ -84,10 +48,15 @@ bool AnimationIOHandler::read(QImage *image) {
 		for (quint16 i = 0; i < length; i++, x++) {
 			quint8 pixel;
 			stream >> pixel;
-			image->setPixel(x, y, pixel);
+			image->setPixel(x, y, mColorTable[pixel]);
 		}
 	} while (true);
+	mCurrentImageNumber++;
 	return true;
+}
+
+bool AnimationIOHandler::canRead() const {
+	return mCurrentImageNumber<mImageCount; 
 }
 
 QRect AnimationIOHandler::currentImageRect() const {
@@ -103,7 +72,7 @@ int AnimationIOHandler::nextImageDelay() const {
 }
 
 int AnimationIOHandler::loopCount() const {
-	return 0;
+	return -1;
 }
 
 int AnimationIOHandler::imageCount() const {
@@ -111,7 +80,7 @@ int AnimationIOHandler::imageCount() const {
 }
 
 bool AnimationIOHandler::jumpToImage(int imageNumber) {
-	if (q_ptr->device()->seek(mImageOffset[imageNumber])) {
+	if(imageNumber<mImageOffset.size()) {
 		mCurrentImageNumber = imageNumber;
 		return true;
 	} else
@@ -127,7 +96,19 @@ bool AnimationIOHandler::jumpToNextImage() {
 
 AnimationIOHandler::AnimationIOHandler(OSIImageIOHandler *p) :
 	OSIImageIOHandlerPrivate(p), mImageCount(0), mCurrentImageNumber(-1),
-			mColorTable(0xFF) {
+			mColorTable(256) {
+		QDataStream stream(q_ptr->device());
+		stream.setByteOrder(QDataStream::LittleEndian);
+		quint16 colour;
+		for (QVector<QRgb>::iterator iter = mColorTable.begin(); iter < mColorTable.end(); iter++) {
+			stream >> colour;
+			*iter = qRgb((colour>>7)&0xF8,(colour>>2)&0xF8,(colour<<3)&0xF8);
+		}
+		stream >> mImageCount;
+		mImageOffset.resize(mImageCount);
+		for (QVector<qint32>::iterator iter = mImageOffset.begin(); iter < mImageOffset.end(); iter++)
+			stream >> *iter;
+		mCurrentImageNumber = 0;
 }
 
 bool AnimationIOHandler::supportsOption(QImageIOHandler::ImageOption option) const {

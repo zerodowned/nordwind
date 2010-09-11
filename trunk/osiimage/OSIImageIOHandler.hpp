@@ -34,6 +34,7 @@ public:
 	virtual void	setOption ( ImageOption option, const QVariant & value );
 	virtual bool	supportsOption ( ImageOption option ) const;
 	virtual bool	write ( const QImage & image );
+	static const QStringList sKeys;
 private:
 	QScopedPointer<OSIImageIOHandlerPrivate> d_ptr;
 private:

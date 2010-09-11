@@ -12,6 +12,7 @@ class AnimationIOHandler : public OSIImageIOHandlerPrivate
     AnimationIOHandler(OSIImageIOHandler* p);
     ~AnimationIOHandler();
     virtual bool read(QImage *image);
+	virtual bool canRead() const;
     virtual int currentImageNumber() const;
     virtual QRect	currentImageRect () const;
     virtual int imageCount() const;
@@ -27,7 +28,7 @@ class AnimationIOHandler : public OSIImageIOHandlerPrivate
     	int mCurrentImageNumber;
     	QVector<QRgb> mColorTable;
     	QRect mCurrentImageRect;
-    	QVector<quint32> mImageOffset;
+    	QVector<qint32> mImageOffset;
     	static int sNextImageDelay;
 };
 

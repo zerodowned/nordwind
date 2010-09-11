@@ -14,8 +14,19 @@
 #include <qvariant.h>
 #include <qrect.h>
 
+const QStringList OSIImageIOHandler::sKeys = QStringList() << QLatin1String("animation") << QLatin1String("static") << QLatin1String("map") << QLatin1String("gump") << QLatin1String("texture");
+
 bool OSIImageIOHandler::canRead(QIODevice* device, const QByteArray& format) {
-	return OSIImageIOHandler(device, format).canRead();
+	if(!sKeys.contains(format))
+		return false;
+	QFile* file = qobject_cast<QFile*> (device);
+	if (!file || !file->fileEngine() || !file->fileEngine()->supportsExtension(
+		(QAbstractFileEngine::Extension)resource::Index::IndexExtension))
+		return false;
+	resource::Index index;
+	file->fileEngine()->extension((QAbstractFileEngine::Extension)resource::Index::IndexExtension, NULL,
+		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<resource::Index*>(&index)));
+	return index.isValid();
 }
 
 OSIImageIOHandler::OSIImageIOHandler(QIODevice* device,
@@ -29,7 +40,7 @@ OSIImageIOHandler::~OSIImageIOHandler() {
 }
 
 void OSIImageIOHandler::setFormat(const QByteArray& format) {
-	if(format=="art")
+	if(format=="map"||format=="static")
 		d_ptr.reset(new ArtIOHandler(this));
 	else if(format=="animation")
 		d_ptr.reset(new AnimationIOHandler(this));
