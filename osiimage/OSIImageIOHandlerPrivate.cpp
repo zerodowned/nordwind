@@ -13,10 +13,10 @@ OSIImageIOHandlerPrivate::OSIImageIOHandlerPrivate(OSIImageIOHandler* q) :
 	q_ptr(q) {
 	QFile* file = qobject_cast<QFile*> (q_ptr->device());
 	if (!file || !file->fileEngine() || !file->fileEngine()->supportsExtension(
-		(QAbstractFileEngine::Extension)resource::Index::IndexExtension))
+		(QAbstractFileEngine::Extension)data::Index::IndexExtension))
 		return;
-	file->fileEngine()->extension((QAbstractFileEngine::Extension)resource::Index::IndexExtension, NULL,
-		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<resource::Index*>(&mIndex)));
+	file->fileEngine()->extension((QAbstractFileEngine::Extension)data::Index::IndexExtension, NULL,
+		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<data::Index*>(&mIndex)));
 }
 
 OSIImageIOHandlerPrivate::~OSIImageIOHandlerPrivate() {

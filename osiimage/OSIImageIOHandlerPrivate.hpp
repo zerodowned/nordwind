@@ -9,7 +9,7 @@
 #define OSIIMAGEIOHANDLERPRIVATE_HPP_
 
 #include "OSIImageIOHandler.hpp"
-#include "../nordwind/resource/Index.hpp"
+#include "../nordwind/data/Index.hpp"
 /*
  *
  */
@@ -32,7 +32,7 @@ public:
 	virtual bool	supportsOption ( QImageIOHandler::ImageOption option ) const;
 	virtual bool	write ( const QImage & image );
 	OSIImageIOHandler* q_ptr;
-	resource::Index mIndex;
+	data::Index mIndex;
 };
 
 #endif /* OSIIMAGEIOHANDLERPRIVATE_HPP_ */
