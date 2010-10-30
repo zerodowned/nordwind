@@ -21,11 +21,11 @@ bool OSIImageIOHandler::canRead(QIODevice* device, const QByteArray& format) {
 		return false;
 	QFile* file = qobject_cast<QFile*> (device);
 	if (!file || !file->fileEngine() || !file->fileEngine()->supportsExtension(
-		(QAbstractFileEngine::Extension)resource::Index::IndexExtension))
+		(QAbstractFileEngine::Extension)data::Index::IndexExtension))
 		return false;
-	resource::Index index;
-	file->fileEngine()->extension((QAbstractFileEngine::Extension)resource::Index::IndexExtension, NULL,
-		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<resource::Index*>(&index)));
+	data::Index index;
+	file->fileEngine()->extension((QAbstractFileEngine::Extension)data::Index::IndexExtension, NULL,
+		static_cast<QAbstractFileEngine::ExtensionReturn*>(const_cast<data::Index*>(&index)));
 	return index.isValid();
 }
 
