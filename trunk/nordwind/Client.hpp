@@ -1,46 +1,45 @@
 #ifndef CLIENT_HPP_
 #define CLIENT_HPP_
 
-#include <QtGui/qapplication.h>
-#include <QtCore/qsettings.h>
-#include <QtScript/qscriptengine.h>
+#include <qapplication.h>
+#include <qpointer.h>
+#include <qabstractsocket.h>
 
-namespace core {
-	class UserInterfaces;
-}
-
-namespace resource {
-	class Resources;
-}
+class QMainWindow;
 /** Client
  *
 */
 class Client : public QApplication {
 	Q_OBJECT;
 	public:
-		Client( int& argc, char** argv );
+		Client(int& argc, char** argv);
 		virtual ~Client();
+		const QString& account() const;
 
-		bool load();
-		bool unload();
+		bool initialize();
 
-		static Client* getInstance();
-
-		enum ClientMode {
-			Standard,
-			MapMaster,
-			MulMaster,
-			Developer
+		enum Privilegs {
+			Player		=	1 << 0,
+			Gamemaster	=	1 << 1,
+			Designer	=	1 << 2,
+			Developer	=	1 << 3,
+			God			=	1 << 4
 		};
 
-		core::UserInterfaces& userInterfaces();
-		resource::Resources& resources();
-		QScriptEngine& scriptEngine();
-		static QSettings& settings();
+		void addChild( QWidget* child, Qt::WindowFlags windowFlags = 0 );
+        Q_SIGNALS:
+                void login(const QString& account, const QString& password);
+	public Q_SLOTS:
+		void cleanup();
+		void setAccount( const QString& account);
+		void setPassword( const QString& password);
+                void connectionEstablished();
+                void error();
+                void networkState(QAbstractSocket::SocketState socketState);
 	private:
-		static QSettings sSettings;
-		QScopedPointer<core::UserInterfaces> mUserInterfaces;
-		QScopedPointer<resource::Resources> mResources;
-		QScopedPointer<QScriptEngine> mScriptEngine;
+		Privilegs mPrivilegs;
+		QString mAccount;
+		QString mPassword;
+		QPointer<QMainWindow> mGUI;
 };
 #endif

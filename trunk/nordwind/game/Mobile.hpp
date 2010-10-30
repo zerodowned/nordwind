@@ -9,19 +9,19 @@
 #define MOBILE_HPP_
 
 #include "Dynamic.hpp"
-#include "../core/Resources.hpp"
+#include "../Typedefs.hpp"
 #include <qmovie.h>
 
 namespace game {
 // TODO create a subclass for running animations here
 class Mobile: public Dynamic {
-Q_OBJECT	;
+Q_OBJECT;
 public:
 	enum Type {
 		Monster,
 		Animal,
 		Character
-	};
+	} Q_PACKED;
 	enum Direction {
 		West = 0,
 		Right = 1,
@@ -31,27 +31,40 @@ public:
 		Left = 5,
 		North = 6,
 		Up = 7,
-	};
+	} Q_PACKED;
+	enum Gender {
+		Male = 0x00,
+		Female = 0x01
+	} Q_PACKED;
+	static const quint8 sDirectionMap[8];
+	static const bool sDirectionFlip[8];
 	typedef quint8 Action;
 	typedef ID Body;
-	Mobile( const QPoint& point, Z _z, Body body, Hue hue, Action action = 0x4, Direction direction = Down );
+	Mobile( Body body = 0x190, Action action = 0x4, Direction direction = Down );
+	QRectF boundingRect() const;
 	Body body() const;
 	Action action() const;
 	Direction direction() const;
-	Hue hue() const;
 	ID id() const;
-	//void paint( QPainter* _painter, const QStyleOptionGraphicsItem* _option, QWidget* _widget = 0 );
+	void paint( QPainter* _painter, const QStyleOptionGraphicsItem* _option, QWidget* _widget = 0 );
 public Q_SLOTS:
 	void onFrameChanged( int frameNumber );
-private:
+protected:
 	Body mBody;
 	Action mAction;
 	Direction mDirection;
-	Hue mHue;
 	QMovie mBase;
-	static const quint8 sDirectionMap[8];
-	static const bool sDirectionFlip[8];
-	static QMap<Type,QPair<ID,quint8> > sTypeMap;
+	QString mName;
+	quint16 mCurrentHP, mMaximumHP,
+			mCurrentStamina, mMaximumStamina,
+			mCurrentMana, mMaximumMana;
+	Gender mGender;
+	quint16 mStrength, mDexterity, mIntelligence;
+	quint16 mGold, mWeight, mStatCap;
+	quint16 mResistPhysical, mResistFire, mResistCold, mResistPoison, mResistEnergy;
+	quint16 mLuck;
+	quint16 mMinDamage, mMaxDamage;
+	quint16 mTithingPoints;
 };
 
 inline Mobile::Body Mobile::body() const {
@@ -66,8 +79,8 @@ inline Mobile::Direction Mobile::direction() const {
 	return mDirection;
 }
 
-inline Hue Mobile::hue() const {
-	return mHue;
+inline QRectF Mobile::boundingRect() const {
+	return mBase.frameRect();
 }
 
 }

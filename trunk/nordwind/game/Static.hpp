@@ -8,28 +8,27 @@
 #ifndef STATICENTITY_HPP_
 #define STATICENTITY_HPP_
 
-#include "Entity.hpp"
+#include <QGraphicsPixmapItem>
 #include "../Typedefs.hpp"
 
 namespace game {
-	class Static : public Entity {
+	class Static : public QGraphicsPixmapItem {
 		public:
-			Static(Coordinate _position, ID id, Hue hue);
+			Static( ID id, Z z);
 			ID id() const;
-			Hue hue() const;
-			void setPixmap(const QPixmap &pixmap);
+//			Hue hue() const;
 		private:
 			ID mID;
-			Hue mHue;
+			Z mZ;
 	};
 
 	inline ID Static::id() const {
 		return mID;
 	}
 
-	inline Hue Static::hue() const {
-		return mHue;
-	}
+//	inline Hue Static::hue() const {
+//		return mHue;
+//	}
 }
 
 #endif /* STATICENTITY_HPP_ */
