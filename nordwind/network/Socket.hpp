@@ -1,50 +1,40 @@
-//#ifndef CSOCKET_H_
-//#define CSOCKET_H_
-//
-//#include <Qt/QTcpSocket.h>
-//#include <Qt/QQueue.h>
-//
-//namespace network {
-//	class CSocket : public QTcpSocket {
-//		enum eSocketState {
-//				DISCONNECTED,
-//				CONNECTING,
-//				LOGIN,
-//				INGAME
-//		};
-//	Q_OBJECT
-//	private:
-//		QQueue<Packet*> m_pendingPackets;
-//		quint32 m_seed;
-//
-//		QString m_address;
-//		quint16 m_port;
-//
-//		QVector<QString> m_accounts;
-//		quint32 m_lastPacketId;
-//
-//		QList<CIncomingPacket*> m_inPackets;
-//		QByteArray m_inBuffer;
-//
-//		// @TODO packet logging
-//		//void logPacket(const QByteArray &data);
-//		//void logPacket(CIncomingPacket *packet);
-//
-//		// status
-//		quint32 m_outBytes;
-//		quint32 m_inBytes;
-//		quint32 m_inBytesCompressed;
-//		quint32 m_features;
-//
-//		QVector<fnIncomingPacketHandler> m_packethandler;
-//	public:
-//		CSocket();
-//		virtual ~CSocket();
-//
-//		// bool registerPacket( CPacket* _packet );
-//		// void unregisterPacket( quint8 _id );
-//		// bool canHandlePacket( quint8 _id );
-//
-//	};
-//}
-//#endif
+#ifndef CSOCKET_H_
+#define CSOCKET_H_
+
+#include <qtcpsocket.h>
+#include <qscopedpointer.h>
+
+namespace network {
+	class Socket : public QTcpSocket {
+	Q_OBJECT;
+	public:
+		typedef QByteArray Packet;
+		class Operator {
+			public:
+				virtual ~Operator() {};
+				virtual void in(QByteArray& inbound) {
+					Q_UNUSED(inbound);
+				};
+				virtual void out(QByteArray& outbound) {
+					Q_UNUSED(outbound);
+				};
+		};
+        protected:
+		quint32 mSeed;
+		QScopedPointer<Operator> mEncryption;
+		QScopedPointer<Operator> mCompression;
+	public:
+                Socket(const QString& host, quint16 port, quint32 seed = qrand());
+		virtual ~Socket();
+	protected:
+		qint64 writeData(const char* data, qint64 maxSize);
+		qint64 readData(char* data, qint64 maxSize);
+	Q_SIGNALS:
+                void readyWrite();
+	protected Q_SLOTS:
+                void establishConnection();
+		virtual void dispatch() = 0;
+		void sendHeader();
+	};
+}
+#endif

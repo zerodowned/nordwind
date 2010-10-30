@@ -6,7 +6,6 @@
  */
 #include "Mobile.hpp"
 #include <qpainter.h>
-#include "../Client.hpp"
 
 using namespace game;
 
@@ -148,22 +147,29 @@ ID Mobile::id() const {
 	return result;
 }
 
-Mobile::Mobile(const QPoint& p, Z _z, Mobile::Body body, Hue hue, Mobile::Action action, Mobile::Direction direction )
-: Dynamic(Coordinate(p,_z)),
+Mobile::Mobile(Mobile::Body body, Mobile::Action action, Mobile::Direction direction )
+: Dynamic(),
 mBody(body),
 mAction(action),
 mDirection(direction),
-mHue(hue),
-mBase(Client::getInstance()->resources().animationFile() + ":" + QString::number(id()),"animation",this) {
+mBase(QString("anim.mul:%1").arg(id()),"animation",this) {
 	mBase.setCacheMode(QMovie::CacheAll);
 	connect(&mBase,SIGNAL(frameChanged(int)),SLOT(onFrameChanged(int)));
 	mBase.start();
 }
 
+void Mobile::paint( QPainter* painter, const QStyleOptionGraphicsItem* _option, QWidget* _widget ) {
+	Q_UNUSED(_option);
+	Q_UNUSED(_widget);
+	QRect rect = mBase.frameRect();
+	if(sDirectionFlip[mDirection])
+		painter->setTransform(QTransform(-1.0f,0.0f,
+										 0.0f,1.0f,
+										 rect.width(),0.0f));
+	painter->drawPixmap(rect.topLeft(),mBase.currentPixmap());
+}
+
 void Mobile::onFrameChanged(int frameNumber) {
 	Q_UNUSED(frameNumber);
-	QRect rect = mBase.frameRect();
-	setOffset(rect.topLeft()-QPoint(rect.width()-44,rect.height()-44));
-	QPixmap pixmap = sDirectionFlip[mDirection]?QPixmap::fromImage(mBase.currentImage().mirrored()):mBase.currentPixmap();
-	setPixmap(pixmap);
+	update();
 }

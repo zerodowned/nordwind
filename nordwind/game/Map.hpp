@@ -7,27 +7,29 @@
 #ifndef MAPENTITY_HPP_
 #define MAPENTITY_HPP_
 
-#include "Entity.hpp"
+#include <qgraphicsitem.h>
 #include "../Typedefs.hpp"
-//#include <qfuturewatcher.h>
 
 namespace game {
-
-	class Map : public Entity {
+	class Map : public QGraphicsItem {
 		public:
-			Map( const QPoint& p, ID _id, Z _z, Z _southZ, Z _downZ, Z _eastZ );
-//			void paint( QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget = 0 );
-			operator QString() const;
-		protected:
-			qint16 calculateStrech( Z _z1, Z _z2 ) const;
+			Map(ID id = 0x2, Z z = 0, Z southZ = 0, Z eastZ = 0, Z downZ = 0);
+			virtual ~Map();
+			virtual QRectF boundingRect () const;
+			virtual void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0 );
+			virtual void setZValue(qreal z);
 		private:
 			ID mID;
-			//QFutureWatcher<QImage>* mLoading;
+			Z mZ;
+			QPixmap mTexture;
+			Z mSouthZ;
+			Z mEastZ;
+			Z mDownZ;
 	};
+}
 
-	inline qint16 Map::calculateStrech( Z _z1, Z _z2 ) const {
-		return qAbs((_z1-_z2)*4+22);
-	}
+inline void game::Map::setZValue(qreal z) {
+	setZValue(z-4.0f);
 }
 
 

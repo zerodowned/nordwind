@@ -1,62 +1,175 @@
 #include "Client.hpp"
-#include "core/UserInterface.hpp"
-#include "core/Resources.hpp"
+#include "Settings.hpp"
+
+#include "Data.hpp"
+#include "data/IndexFileHandle.hpp"
+#include "data/MulFileEngine.hpp"
+#include "data/TileData.hpp"
+
 #include "game/Scene.hpp"
-#include "game/View.hpp"
-#include "game/Mobile.hpp"
+
+#include "network/LoginSocket.hpp"
+
+#include <qmainwindow.h>
+#include <qmdiarea.h>
+#include <qmdisubwindow.h>
+#include "gui/Login.hpp"
+
+#include <qstatusbar.h>
+#include <qmessagebox.h>
+#include <qapplication.h>
+#include <qsplashscreen.h>
+#include <qfiledialog.h>
+#include <qdir.h>
 #include <qdatetime.h>
 #include <qdebug.h>
 #include <qpixmapcache.h>
 
-QSettings Client::sSettings("config.ini",QSettings::IniFormat);
-
-Client::Client( int& argc, char** argv  )
-: QApplication(argc, argv) {
+Client::Client(int& argc, char** argv)
+: QApplication(argc,argv,QApplication::GuiClient) {
+	setObjectName("Client");
 	setApplicationName( QApplication::tr("Nordwind") );
 	setApplicationVersion(  QApplication::tr("Alpha") );
 	setOrganizationDomain(  QApplication::tr("idstein.info") );
 	setOrganizationName(  QApplication::tr("Idstein") );
+	connect(this,SIGNAL(aboutToQuit()),SLOT(cleanup()));
 }
 
-Client::~Client(void) {}
+Client::~Client(void) {
+}
 
-bool Client::load() {
-	QPixmapCache::setCacheLimit(102400); // Cache to 100 MB
-	mResources.reset(new resource::Resources(this));
-	mUserInterfaces.reset(new core::UserInterfaces());
-    game::Scene* scene = new game::Scene("siebenwind",mUserInterfaces.data());
+bool Client::initialize() {
 	QTime time;
+	qDebug() << "Initializing load sequence";
+	QSplashScreen splashscreen(QPixmap(":/7w.png"));
+	splashscreen.show();
+
+	splashscreen.showMessage("Reading configuration...",Qt::AlignCenter);
+	qApp->processEvents();
+	Settings::setPointer(new Settings());
+	Settings& settings = Settings::instance();
+	QString folderPath = settings.value("path").toString();
+	if(folderPath.isEmpty())
+		folderPath = QFileDialog::getExistingDirectory(NULL,tr("Select UO Data folder"),QDir::currentPath());
+	QDir path(folderPath);
+
+	splashscreen.showMessage("Initializing data...",Qt::AlignCenter);
+	qApp->processEvents();
+	// Increase pixmap cache
+	// TODO set variable in settings!
+	QPixmapCache::setCacheLimit(102400); // Cache to 100 MB
+	new data::TileData(settings.value("tiledata","tiledata.mul").toString());
+	settings.beginGroup("muls");
 	time.start();
-	QPoint offset(1993,730);
-    scene->loadMap(QRect(offset,QSize(32,32)));
-	qDebug() << "Load done in" << time.restart() << "ms";
-	scene->addItem(new game::Mobile(offset, 20, 0x190,0,0x2));
-	game::View* view = new game::View(NULL);
-	view->setScene(scene);
-    mUserInterfaces->addUI( view );
-    view->show();
+	Q_FOREACH(QString type, settings.childGroups()) {
+		settings.beginGroup(type);
+		QString mulFile = settings.value("file").toString();
+		QString indexFile = settings.value("index").toString();
+		if(!indexFile.isNull())
+			data::IndexFileHandle::instance(mulFile,indexFile);
+		if(!QFile::exists(QString("%1:%2").arg(settings.value("file").toString()).arg(0)))
+			qWarning() << "Empty index 0 in" << indexFile;
+		settings.endGroup();
+		qDebug() << type << "loaded with MulFileEngine took aprox." << time.restart() << "ms";
+	}
+	settings.endGroup();
+	settings.beginGroup("facets");
+	Q_FOREACH(QString facet, settings.childGroups()) {
+		qDebug() << "Construct facet" << facet;
+		new game::Scene(facet,
+		settings.value(facet +"/map","map0.mul").toString(),
+		settings.value(facet +"/data","statics0.mul").toString(),
+		settings.value(facet +"/index","staidx0.mul").toString(),
+		settings.value(facet +"/dimension",QSize(768,512)).toSize()
+		);
+	}
+	settings.endGroup();
+
+	splashscreen.showMessage("Creating network context...",Qt::AlignCenter);
+	qApp->processEvents();
+        new network::LoginSocket(settings.value("LoginServer","localhost").toString(),settings.value("LoginPort",2593).toUInt());
+
+	splashscreen.showMessage("Creating GUI context...",Qt::AlignCenter);
+	qApp->processEvents();
+	mGUI = new QMainWindow;
+	mGUI->resize( 640, 480 );
+	mGUI->setCentralWidget(new QMdiArea);
+
+    gui::Login* login = new gui::Login;
+    addChild(login,0);
+
+    splashscreen.finish(mGUI);
+    mGUI->show();
+
 	return true;
 }
 
-core::UserInterfaces& Client::userInterfaces() {
-	return *mUserInterfaces;
+void Client::cleanup() {
+	Q_FOREACH(QGraphicsScene* scene,findChildren<QGraphicsScene*>()) {
+		if(scene)
+			delete scene;
+	}
 }
 
-resource::Resources& Client::resources() {
-	return *mResources;
+void Client::setAccount(const QString& account) {
+	mAccount = account;
 }
 
-QScriptEngine& Client::scriptEngine() {
-	return *mScriptEngine;
+void Client::setPassword(const QString& password) {
+	mPassword = password;
 }
 
-Client* Client::getInstance() {
-	return qobject_cast<Client*>(qApp);
+void Client::addChild(QWidget *widget,Qt::WindowFlags windowFlags) {
+	QMdiArea* area = qobject_cast<QMdiArea*>(mGUI->centralWidget());
+	if(!area)
+		qFatal("Central widget is not a QMdiArea");
+        QMdiSubWindow* sub = area->addSubWindow(widget,windowFlags);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        connect(widget,SIGNAL(destroyed()),sub,SLOT(close()));
+	sub->show();
 }
 
-QSettings& Client::settings() {
-	return sSettings;
+void Client::connectionEstablished() {
+    emit login(mAccount,mPassword);
 }
+
+void Client::error() {
+    QAbstractSocket* socket = qobject_cast<QAbstractSocket*>(sender());
+    if(socket)
+        QMessageBox::warning(mGUI,tr("Network Error %1 - %2:%3").arg(socket->objectName()).arg(socket->peerName()).arg(socket->peerPort()),socket->errorString());
+}
+
+void Client::networkState(QAbstractSocket::SocketState socketState) {
+    QString message;
+    QAbstractSocket* socket = qobject_cast<QAbstractSocket*>(sender());
+    switch(socketState) {
+        case QAbstractSocket::UnconnectedState:
+            message = tr("Not connected");
+            break;
+        case QAbstractSocket::HostLookupState:
+            message = tr("Looking for host %1:%2").arg(socket->peerName()).arg(socket->peerPort());
+            break;
+    case QAbstractSocket::ConnectingState:
+            message = tr("Connecting to host %1:%2").arg(socket->peerName()).arg(socket->peerPort());
+            break;
+    case QAbstractSocket::ConnectedState:
+            message = tr("Connected to host %1:%2").arg(socket->peerName()).arg(socket->peerPort());
+            break;
+    case QAbstractSocket::ClosingState:
+            message = tr("Closing connection host %1:%2").arg(socket->peerName()).arg(socket->peerPort());
+            break;
+    default:
+            message = tr("No network activity.");
+    }
+    mGUI->statusBar()->showMessage(message);
+}
+
+int main(int argc, char *argv[]) {
+	Client client(argc,argv);
+	data::MulFileEngineHandler mulEngineHandler;
+    return client.initialize() && client.exec();
+}
+
 /*
 void CClient::shutdown(quint32 _msecs) {
 	setState( eCS_ShutDown, true );

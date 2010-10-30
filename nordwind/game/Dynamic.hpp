@@ -5,41 +5,37 @@
  *      Author: idstein
  */
 
-#ifndef DYNAMIC_HPP_
-#define DYNAMIC_HPP_
+#ifndef DYNAMIC_HPP__
+#define DYNAMIC_HPP__
 
-#include <qobject.h>
-#include "Entity.hpp"
+#include <QGraphicsObject>
 
 namespace game {
-	typedef quint32 Serial;
-
-	class Dynamic : public QObject, public Entity {
+	class Dynamic : public QGraphicsObject {
 		Q_OBJECT;
-		Q_PROPERTY(Serial serial READ getSerial WRITE setSerial);
+		Q_PROPERTY(Serial serial READ serial WRITE setSerial);
 		public:
-			Dynamic( const Coordinate& _position, Serial _serial = -1 );
+			typedef quint32 Serial;
+			Dynamic( const Serial& serial = -1 );
 			Serial serial() const;
-			Dynamic& setSerial( Serial _setial );
+			void setSerial( Serial serial );
 		private:
 			Serial mSerial;
 	};
 
-	inline Dynamic::Dynamic(const Coordinate& _position,Serial _serial)
-	: QObject(),
-	  Entity(_position),
-	  mSerial(_serial) {
+	inline Dynamic::Dynamic(const Dynamic::Serial& serial)
+	: QGraphicsObject(),
+	  mSerial(serial) {
 	}
 
-	inline Serial Dynamic::serial() const {
+	inline Dynamic::Serial Dynamic::serial() const {
 		return mSerial;
 	}
 
-	inline Dynamic& Dynamic::setSerial( Serial _serial ) {
+	inline void Dynamic::setSerial( Serial _serial ) {
 		mSerial = _serial;
-		return *this;
 	}
 }
 
-
 #endif /* DYNAMIC_HPP_ */
+
