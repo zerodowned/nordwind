@@ -18,12 +18,12 @@ bool Cursor::load() {
 	const quint32 normalCursorOffset = 0x206A;
 	const quint32 warmodeCursorOffset = 0x2053;
 	
-	if( core::Client::root->resource() ) {
+	if( core::Client::root->data() ) {
 		m_cursors.resize( CURSOR_COUNT );
 		m_cursorsWar.resize( CURSOR_COUNT );
 		for( quint8 i = 0; i < m_cursors.size(); i ++ ) {
 			qint32 hotX, hotY;
-			QPixmap* cur = core::Client::root->resource()->getCursor( hotX, hotY, normalCursorOffset + i );
+			QPixmap* cur = core::Client::root->data()->getCursor( hotX, hotY, normalCursorOffset + i );
 			if(cur) {
 				QPixmap pix = QPixmap::fromImage( *cur );
 				pix.setMask( QBitmap::fromImage( cur->createAlphaMask() ) );
@@ -33,7 +33,7 @@ bool Cursor::load() {
 			} else {
 				qWarning() << QString("Couldn't load cursor %1 at id %2").arg(i).arg(normalCursorOffset + i);
 			}
-			cur = core::Client::root->resource()->getCursor( hotX, hotY, warmodeCursorOffset + i );
+			cur = core::Client::root->data()->getCursor( hotX, hotY, warmodeCursorOffset + i );
 			if(cur) {
 				QPixmap pix = QPixmap::fromImage( *cur );
 				pix.setMask( QBitmap::fromImage( cur->createAlphaMask() ) );
