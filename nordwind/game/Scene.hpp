@@ -1,103 +1,60 @@
 #ifndef SCENE_HPP__
 #define SCENE_HPP__
 
-#include <qgraphicsscene.h>
-#include <qcache.h>
-#include <qmap.h>
-#include <qpoint.h>
-#include <qfile.h>
-#include <qvector3d.h>
-#include <qmatrix4x4.h>
-#include <qsharedpointer.h>
-#include "Map.hpp"
-#include "Static.hpp"
-#include "../Typedefs.hpp"
+#include "Object.hpp"
+#include "object/Ground.hpp"
 
-// required for QMultiMap<QVector3D,...>
-inline bool operator<(const QVector3D& v1, const QVector3D& v2) {
-	return v1.x() < v2.x() || 
-		  (v1.x() == v2.x() && v1.y() < v2.y()) ||
-		  (v1.x()==v2.x()&&v1.y()==v2.y()&&v1.z()<v2.z());
+#include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QCache>
+#include <QPoint>
+#include <QDataStream>
+#include <QVector3D>
+#include <QMatrix4x4>
+#include <QMultiHash>
+
+inline uint qHash(const QPoint& p) {
+    uint h1 = qHash(p.x());
+    uint h2 = qHash(p.y());
+    return ((h1 << 16) | (h1 >> 16)) ^ h2;
 }
 
 namespace game {
-class Scene;
-class Scene: public QGraphicsScene {
-Q_OBJECT;
-public:
-	class Block : public QMultiMap<QVector3D, QSharedPointer<QGraphicsItem> > {
-	public:
-		struct Map {
-			quint16 mID;
-			qint8 mZ;
-			qint8 mSouthZ;
-			qint8 mEastZ;
-			qint8 mDownZ;
-		};
-		struct Static {
-			quint16 mID;
-			quint8 mXOffset;
-			quint8 mYOffset;
-			qint8 mZ;
-			quint16 mHueID;
-		};
-		typedef QVector<Map> Maps;
-		typedef QVector<Static> Statics;
-	};
-	explicit Scene(const QString& name, const QString& mapFile, const QString& staticsFile, const QString& indexFile, const QSize& dimension, const QSize& blockSize = QSize(8,8));
-	virtual ~Scene();
-	static Scene* instance(const QString& name);
-	void loadMap( const QRect& rect );
-	QSize dimension() const;
-	QSize blockSize() const;
-	void addItem(QGraphicsItem *item, const QVector3D& position);
-protected:
-	static QVector3D absolutePosition(const QPoint& p, Z z);
-	void constructBlock(const QPoint& point);
-	Block::Maps maps(ID blockID);
-	void setZValues(Scene::Block::Maps& maps,
-			const Scene::Block::Maps& easts,
-			const Scene::Block::Maps& downs,
-			const Scene::Block::Maps& souths);
-	int mapOffset(int x, int y) const;
-	Block::Statics statics(ID blockID);
-	ID id(const QPoint& point) const;
-	QPoint convertCellToBlockPoint(const QPoint& point) const;
-private:
-	QFile mMapFile;
-	const QString mStaticsFile;
-	const QSize mDimension;
-	const QSize mBlockSize;
-	QCache< ID, Block > mBlocks;
-	static const QMatrix4x4 sMatrix;
-};
 
-inline QSize Scene::dimension() const {
-	return mDimension;
-}
+    class Scene: public QGraphicsScene {
+        Q_OBJECT;
+    public:
+        explicit Scene(const QString& mapFile,
+                       const QString& staticsFile,
+                       const QString& indexFile,
+                       QObject* parent = NULL,
+                       const QSize& dimension = QSize(768,512));
+        virtual ~Scene();
+        QSize dimension() const;
+        static QSize blockSize();
+        static const QSize sBlockSize;
+    public Q_SLOTS:
+        void enableNetwork(QObject* network);
+        void removeDynamic(quint32 serial);
+        void loadMap(const QRect& rect);
+        QGraphicsItem* updateItem(quint32 serial, quint16 artwork,const QVector3D& pos, quint16 hue, quint16 amount, quint8 direction, quint8 status);
+        QGraphicsItem* updateMobile(quint32 serial, quint16 body, quint8 direction, const QVector3D& pos, quint16 hue, quint8 status, quint8 notoriety);
+        QGraphicsItem* teleportMobile(quint32 serial, quint16 body, quint8 direction, const QVector3D& pos, quint16 hue, quint8 status );
+        void showUnicodeText(quint32 serial, quint16 body, quint8 mode, quint16 hue, quint16 font, QByteArray lang, QString name, QString message);
+    protected:
+        QList<QGraphicsItem*> maps(const ID& blockID, const QPoint& blockCoord);
+        QList<QGraphicsItem*> statics(const ID& blockID, const QPoint& blockCoord);
+        quint32 id(const QPoint& point) const;
+    private:
+        const QString mStaticsFile;
+        const QSize mDimension;
+        QDataStream mMapStream;
 
-inline QSize Scene::blockSize() const {
-	return mBlockSize;
-}
+        QCache<ID, QRect> mBlocks;
+        QCache<Serial, QObject> mDynamics;
+        QMultiHash<QPoint,QGraphicsItem*> mIndex;
+        QHash<QPoint,Ground*> mMap;
+    };
 
-inline ID Scene::id(const QPoint& p) const {
-	return (p.x() * mDimension.height()) + p.y();
-}
-
-inline QPoint Scene::convertCellToBlockPoint(const QPoint& p) const {
-	return QPoint(p.x() / mBlockSize.width(), p.y()
-			/ mBlockSize.height());
-}
-
-inline int Scene::mapOffset(int x, int y) const {
-	return y*mBlockSize.width() + x;
-}
-
-inline void Scene::addItem(QGraphicsItem *item, const QVector3D& position) {
-	QVector3D vec= position*sMatrix;
-	QGraphicsScene::addItem(item);
-	item->setPos(vec.x(),vec.y());
-	item->setZValue(position.z());
-}
 }
 #endif

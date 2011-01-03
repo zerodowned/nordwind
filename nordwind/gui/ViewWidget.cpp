@@ -1,33 +1,46 @@
 #include "ViewWidget.hpp"
 #include <QGLWidget>
-#include "../game/Scene.hpp"
-#include "../game/Mobile.hpp"
-#include <QVector2D>
-#include <qdatetime.h>
-#include <qdebug.h>
+#include <QAction>
 
 using namespace gui;
 
-ViewWidget::ViewWidget(const QString& facetName, const QPoint& offset, const QSize& size, QWidget* parent)
-: QGraphicsView(parent),
-mCharacter(new game::Mobile) {
-	setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing|QGraphicsView::DontSavePainterState );
-	setResizeAnchor(QGraphicsView::AnchorViewCenter);
-//  setRubberBandSelectionMode(Qt::ContainsItemShape);
-	setBackgroundBrush(Qt::black);
-//	setViewport(new QGLWidget);
-	game::Scene* scene = game::Scene::instance(facetName);
-	if(scene) {
-		QTime timer;
-		timer.start();
-		QRect mapRect(offset,size);
-		scene->loadMap(mapRect);
-		qDebug() << "Load done in" << timer.restart() << "ms";
-		scene->addItem(mCharacter,QVector3D(QVector2D(mapRect.center()),20));
-		setScene(scene);
-		centerOn(mCharacter);
-	}
+ViewWidget::ViewWidget(QGraphicsScene* scene, QWidget* parent)
+    : QGraphicsView(scene,parent) {
+    setObjectName("View");
+    setRubberBandSelectionMode(Qt::ContainsItemShape);
+    resize(QSize(640,480));
+
+    setViewport(new QGLWidget);
+    setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing|QGraphicsView::DontSavePainterState );
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    setResizeAnchor(QGraphicsView::AnchorViewCenter);
+    setCacheMode(QGraphicsView::CacheBackground);
+
+    setBackgroundBrush(Qt::black);
+    /*QRadialGradient radialGradient(viewport()->rect().center(),
+                                       viewport()->size().width()/2,
+                                       viewport()->rect().bottomLeft());
+        radialGradient.setColorAt(0.0f, Qt::white);
+        radialGradient.setColorAt(1.0f, Qt::black);
+        setForegroundBrush(radialGradient);*/
+    QAction* toggleMap = new QAction("Toggle map grid",this);
+    toggleMap->setCheckable(true);
+    connect(toggleMap,SIGNAL(toggled(bool)),SLOT(toggleMap(bool)));
+    addAction(toggleMap);
+
+    setContextMenuPolicy(Qt::ActionsContextMenu);
+    show();
 }
 
 ViewWidget::~ViewWidget() {
+}
+
+void ViewWidget::moveView(QPoint _position, qint16 _z) {
+}
+
+void ViewWidget::toggleMap(bool enable) {
+    if(scene()) {
+        scene()->setProperty("map.lines",enable);
+        scene()->update();
+    }
 }

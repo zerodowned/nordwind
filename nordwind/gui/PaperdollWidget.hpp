@@ -4,19 +4,19 @@
 #include <QWidget>
 
 namespace Ui {
-    class PaperdollWidget;
+    class Paperdoll;
 }
 
-class PaperdollWidget : public QWidget
+class Paperdoll : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit PaperdollWidget(QWidget *parent = 0);
-    ~PaperdollWidget();
+    explicit Paperdoll(QWidget *parent = 0);
+    ~Paperdoll();
 
 private:
-    Ui::PaperdollWidget *ui;
+    Ui::Paperdoll *ui;
 };
 
 #endif // PAPERDOLL_HPP

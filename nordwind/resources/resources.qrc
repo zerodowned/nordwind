@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>7w.ico</file>
+        <file>7w.png</file>
+        <file>debug.gif</file>
+    </qresource>
+</RCC>

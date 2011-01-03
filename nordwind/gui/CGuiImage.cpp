@@ -20,7 +20,7 @@ CGumpImage::CGumpImage( QWidget* _parent, qint32 _x, qint32 _y, quint32 _id, qui
 	move( _x, _y );
 	quint16 width = (_width!=0xFFFF) ? _width : 50;
 	quint16 height = (_height!=0xFFFF) ? _height : 50;
-	m_gump = resource::Gumps::instance().getGump( _id, _hue, _partialHue );
+	m_gump = data::Gumps::instance().getGump( _id, _hue, _partialHue );
 	if(m_gump) {
 		if(_resize) {
 			width = m_gump->image().width();
@@ -47,7 +47,7 @@ void CGumpImage::setId(quint32 _id ) {
 		return;
 	if(m_gump)
 		m_gump->decRef();
-	m_gump = resource::Gumps::instance().getGump( _id, m_hue, m_partialHue );
+	m_gump = data::Gumps::instance().getGump( _id, m_hue, m_partialHue );
 	if(m_gump&&m_resize) {
 		resize( m_gump->image().width(), m_gump->image().height() );
 	}
@@ -65,7 +65,7 @@ void CGumpImage::setHue(quint32 _hue) {
 		return;
 	if(m_gump)
 		m_gump->decRef();
-	m_gump = resource::Gumps::instance().getGump( m_id, _hue, m_partialHue );	
+	m_gump = data::Gumps::instance().getGump( m_id, _hue, m_partialHue );	
 	m_hue = _hue;
 	emit gumpChange();
 	emit hueChange();
@@ -80,7 +80,7 @@ void CGumpImage::setPartialHue(bool _partialHue) {
 		return;
 	if(m_gump)
 		m_gump->decRef();
-	m_gump = resource::Gumps::instance().getGump( m_id, m_hue, _partialHue );
+	m_gump = data::Gumps::instance().getGump( m_id, m_hue, _partialHue );
 	m_partialHue = _partialHue;
 	emit gumpChange();
 	emit partialHueChange();
@@ -91,7 +91,7 @@ void CGumpImage::setType(quint32 _id, quint32 _hue, bool _partialHue, bool _resi
 		return;
 	if(m_gump)
 		m_gump->decRef();
-	m_gump =  resource::Gumps::instance().getGump( _id, _hue, _partialHue );
+	m_gump =  data::Gumps::instance().getGump( _id, _hue, _partialHue );
 	if(m_gump&&_resize) {
 		resize( m_gump->image().width(), m_gump->image().height() );
 	}

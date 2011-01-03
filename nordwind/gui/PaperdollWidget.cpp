@@ -1,14 +1,14 @@
 #include "PaperdollWidget.hpp"
 #include "ui_PaperdollWidget.h"
 
-PaperdollWidget::PaperdollWidget(QWidget *parent) :
+Paperdoll::Paperdoll(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::PaperdollWidget)
+    ui(new Ui::Paperdoll)
 {
     ui->setupUi(this);
 }
 
-PaperdollWidget::~PaperdollWidget()
+Paperdoll::~Paperdoll()
 {
     delete ui;
 }
